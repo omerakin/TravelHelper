@@ -4,24 +4,19 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 /**
  * Provides base functionality to all servlets in this example. Original author:
  * Prof. Engle
  *
- * @see RegisterServer
+ * @see MainServer 
  */
 @SuppressWarnings("serial")
 public class BaseServlet extends HttpServlet {

@@ -12,10 +12,6 @@ import java.util.HashSet;
 import java.util.InvalidPropertiesFormatException;
 import java.util.Properties;
 import java.util.Set;
-
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 /**
  * This class is designed to test your database configuration. You need to have
  * a database.properties file with username, password, database, and hostname.

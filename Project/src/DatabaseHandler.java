@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  * Handles all database-related actions. Uses singleton design pattern. Modified
  * by Prof. Karpenko from the original example of Prof. Engle.
  * 
- * @see RegisterServer
+ * @see MainServer
  */
 public class DatabaseHandler {
 

@@ -16,7 +16,7 @@ public class LogInServlet extends BaseServlet{
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		prepareResponse("Login", resp);
 		
-		PrintWriter printWriter = resp.getWriter();
+		PrintWriter printWriter = resp.getWriter(); 
 		// error will not be null if we were forwarded her from the post method where something went wrong
 		String error = req.getParameter("error");
 		if(error != null) {

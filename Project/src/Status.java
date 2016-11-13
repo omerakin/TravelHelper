@@ -18,7 +18,7 @@ public enum Status {
 	 * first element, and will have ordinal 0.)
 	 */
 
-	OK("No errors occured."),
+	OK("No errors occured."), 
 	ERROR("Unknown error occurred."),
 	MISSING_CONFIG("Unable to find configuration file."),
 	MISSING_VALUES("Missing values in configuration file."),

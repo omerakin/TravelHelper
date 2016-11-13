@@ -27,7 +27,7 @@ public class RegistrationServlet extends BaseServlet {
 
 		prepareResponse("Register New User", response);
 
-		PrintWriter out = response.getWriter();
+		PrintWriter out = response.getWriter(); 
 		
 		// error will not be null if we were forwarded her from the post method where something went wrong
 		String error = request.getParameter("error");
