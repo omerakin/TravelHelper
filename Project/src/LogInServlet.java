@@ -1,10 +1,14 @@
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+
+import cs601.hotelapp.ThreadSafeHotelData;
 
 @SuppressWarnings("serial")
 public class LogInServlet extends BaseServlet{
@@ -42,8 +46,11 @@ public class LogInServlet extends BaseServlet{
 		if(status == Status.OK) { // registration was successful
 			resp.getWriter().println("Login successful.");
 			resp.getWriter().println("Welcome " + user + "!");
+			ThreadSafeHotelData tsData = (ThreadSafeHotelData) getServletContext().getAttribute("tsData");
+			req.setAttribute("tsData", tsData);
 			String url = "/hotels";
 			url = resp.encodeRedirectURL(url);
+			System.out.println(url);
 			resp.sendRedirect(url);
 		} else { // if something went wrong
 			String url = "/login?error=" + status.name();
