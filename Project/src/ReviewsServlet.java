@@ -1,5 +1,7 @@
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -17,7 +19,14 @@ public class ReviewsServlet extends BaseServlet{
 		PrintWriter printWriter = resp.getWriter();
 		String hotelId = req.getParameter("hotelId");
 		ThreadSafeHotelData tsData = (ThreadSafeHotelData) getServletContext().getAttribute("tsData");
-		tsData.listReviewsInfo(printWriter, hotelId);		
+		DatabaseConnector db;
+		db = new DatabaseConnector("database.properties");
+		try (Connection connection = db.getConnection();) {
+			tsData.listReviewsInfo(printWriter, hotelId, connection);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}				
 		printWriter.println("</body>");
 		printWriter.println("</html>");
 		printWriter.flush();

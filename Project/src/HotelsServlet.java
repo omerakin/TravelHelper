@@ -1,5 +1,7 @@
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -21,7 +23,15 @@ public class HotelsServlet extends BaseServlet {
 		 
 		PrintWriter printWriter = resp.getWriter();
 		ThreadSafeHotelData tsData = (ThreadSafeHotelData) getServletContext().getAttribute("tsData");
-		tsData.listGeneralHotelsInfo(printWriter);
+		DatabaseConnector db;
+		db = new DatabaseConnector("database.properties");
+		try (Connection connection = db.getConnection();) {
+			tsData.listGeneralHotelsInfo(printWriter, connection);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		printWriter.println("</body>");
 		printWriter.println("</html>");
 		printWriter.flush();

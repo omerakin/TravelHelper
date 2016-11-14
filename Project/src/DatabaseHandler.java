@@ -26,11 +26,33 @@ public class DatabaseHandler {
 
 	/** Used to determine if login_users table exists. */
 	private static final String TABLES_SQL = "SHOW TABLES LIKE 'login_users';";
+	
+	/** Used to determine if hotels table exists. */
+	private static final String HOTELS_SQL = "SHOW TABLES LIKE 'hotels';";
+	
+	/** Used to determine if reviews table exists. */
+	private static final String REVIEWS_SQL = "SHOW TABLES LIKE 'reviews';";
 
 	/** Used to create login_users table for this example. */
 	private static final String CREATE_SQL = "CREATE TABLE login_users ("
 			+ "userid INTEGER AUTO_INCREMENT PRIMARY KEY, " + "username VARCHAR(32) NOT NULL UNIQUE, "
 			+ "password CHAR(64) NOT NULL, " + "usersalt CHAR(32) NOT NULL);";
+	
+	/** Used to create hotels table for this example. */
+	private static final String CREATE_HOTELS_SQL = "CREATE TABLE hotels ("
+			+ "hotel_id char(20) NOT NULL , hotel_name char(250) NULL , "
+			+ "hotel_street_address char(100) NULL , hotel_city char(50) NULL , "
+			+ "hotel_state char(50) NULL , hotel_country char(50) NULL , "
+			+ "hotel_longitude double NULL , hotel_latitude double NULL , "
+			+ "hotel_Rating double NULL );";
+	
+	/** Used to create reviews table for this example. */
+	private static final String CREATE_REVIEWS_SQL = "CREATE TABLE reviews ("
+			+ "hotel_id char(20) NOT NULL , review_id char(250) NOT NULL , "
+			+ "review_title char(250) NULL , review_text TEXT NULL , " 
+			+ "username char(50) NULL , isRecom BOOL NULL , "
+			+ "rating double NULL );";
+	
 
 	/** Used to insert a new user's info into the login_users table */
 	private static final String REGISTER_SQL = "INSERT INTO login_users (username, password, usersalt) "
@@ -125,6 +147,33 @@ public class DatabaseHandler {
 			} else {
 				status = Status.OK;
 			}
+			if(!statement.executeQuery(HOTELS_SQL).next()){
+				// Table missing, must create
+				statement.executeUpdate(CREATE_HOTELS_SQL);
+				// Check if create was successful
+				if (!statement.executeQuery(HOTELS_SQL).next()) {
+					status = Status.CREATE_FAILED;
+				} else {
+					status = Status.OK;
+				}
+			} else {
+				status = Status.OK;
+			}
+			//statement.executeUpdate("DROP TABLE reviews;");
+			if(!statement.executeQuery(REVIEWS_SQL).next()){
+				// Table missing, must create
+				statement.executeUpdate(CREATE_REVIEWS_SQL);
+				// Check if create was successful
+				if (!statement.executeQuery(REVIEWS_SQL).next()) {
+					status = Status.CREATE_FAILED;
+					System.out.println("buraaaa 222222");
+				} else {
+					status = Status.OK;
+				}
+			} else {
+				status = Status.OK;
+			}
+			
 		} catch (Exception ex) {
 			status = Status.CREATE_FAILED;
 		}
