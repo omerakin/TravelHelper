@@ -44,13 +44,8 @@ public class LogInServlet extends BaseServlet{
 		// check user's info in the database 
 		Status status = dbhandler.loginUser(user, pass);
 		if(status == Status.OK) { // registration was successful
-			resp.getWriter().println("Login successful.");
-			resp.getWriter().println("Welcome " + user + "!");
-			ThreadSafeHotelData tsData = (ThreadSafeHotelData) getServletContext().getAttribute("tsData");
-			req.setAttribute("tsData", tsData);
 			String url = "/hotels";
 			url = resp.encodeRedirectURL(url);
-			System.out.println(url);
 			resp.sendRedirect(url);
 		} else { // if something went wrong
 			String url = "/login?error=" + status.name();

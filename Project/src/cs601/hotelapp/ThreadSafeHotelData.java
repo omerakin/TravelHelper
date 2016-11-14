@@ -351,4 +351,81 @@ public class ThreadSafeHotelData {
 			lock.unlockRead();
 		}
 	}
+
+	public void listGeneralHotelsInfo(PrintWriter printWriter) {
+		lock.lockRead();
+		try {
+			for(String hotel_id: hotelsGivenByHotelId.keySet()){
+				double averageRating = 0;
+				if(reviewsGivenByHotelId.containsKey(hotel_id)){
+					for(Review review: reviewsGivenByHotelId.get(hotel_id)){
+						averageRating = averageRating + review.getRating();
+					}
+					averageRating = (averageRating / reviewsGivenByHotelId.get(hotel_id).size());
+				}
+				
+				printWriter.println("<p>" +  "Hotel Name : " + hotelsGivenByHotelId.get(hotel_id).getHotel_name() + "</p>");
+				printWriter.println("<p>" + "Address : " + hotelsGivenByHotelId.get(hotel_id).getAddress().getStreet_address() + "</p>");
+				printWriter.println("<p>" + "City : " + hotelsGivenByHotelId.get(hotel_id).getAddress().getCity() + ", "
+									+ "State : " + hotelsGivenByHotelId.get(hotel_id).getAddress().getState() + "</p>");
+				printWriter.println("<p>" + "Rating : " + averageRating + "</p>");
+				printWriter.println("<form action=\"/reviews\" method=\"get\">");
+				printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + hotel_id + "\" />");
+				printWriter.println("<p><input type=\"submit\" value=\"Reviews\"></p>");
+				printWriter.println("</form>");
+				printWriter.println("<p>" + "----------------------------------------------------" + "</p>");
+				
+				/*
+				printWriter.println("<p>" + hotel_id + "</p>");
+				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getHotel_name() + "</p>");
+				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getAddress().getStreet_address() + "</p>");
+				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getAddress().getCity() + "</p>");
+				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getAddress().getState() + "</p>");
+				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getAddress().getCountry() + "</p>");
+				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getAddress().getLongitude() + "</p>");
+				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getAddress().getLatitude() + "</p>");
+				printWriter.println("<p>" + averageRating + "</p>");
+				printWriter.println("<p>" + "----------------------------------------------------" + "</p>");
+				*/
+			}
+		} finally {
+			lock.unlockRead();
+		}		
+	}
+
+	public void listReviewsInfo(PrintWriter printWriter, String hotelId) {
+		lock.lockRead();
+		try {
+			
+			if(reviewsGivenByHotelId.containsKey(hotelId)){
+				for(Review hotelIdReview : reviewsGivenByHotelId.get(hotelId)){					
+					printWriter.println("<p>" + "Review by " + hotelIdReview.getUsername() + ": " + "</p>"); 
+					printWriter.println("<p>" + "Rating : " + hotelIdReview.getRating() + "</p>"); 
+					printWriter.println("<p>" + "Title : " + hotelIdReview.getReview_title() + "</p>"); 
+					printWriter.println("<p>" + "Text : " + hotelIdReview.getReview_text() + "</p>"); 
+					printWriter.println("<p>" + "--------------------" + "</p>"); 
+				}
+			} else {
+				printWriter.println("<p> There is no review yet for this hotel.</p>");
+			}
+			
+			/*
+			for (String hotel_id_review: reviewsGivenByHotelId.keySet()){
+				for(Review hotelIdReview : reviewsGivenByHotelId.get(hotel_id_review)){
+					printWriter.println("<p>" + hotel_id_review + "</p>");
+					printWriter.println("<p>" + hotelIdReview.getReview_id() + "</p>"); 
+					printWriter.println("<p>" + hotelIdReview.getReview_title() + "</p>");
+					printWriter.println("<p>" + hotelIdReview.getReview_text() + "</p>");
+					printWriter.println("<p>" + hotelIdReview.getUsername() + "</p>"); 
+					printWriter.println("<p>" + hotelIdReview.getIsRecom() + "</p>"); 
+					printWriter.println("<p>" + hotelIdReview.getRating() + "</p>");  
+					printWriter.println("<p>" + "--------------------" + "</p>");
+				}
+			}	
+			*/	
+			
+		} finally {
+			lock.unlockRead();
+		}		
+	}
 }

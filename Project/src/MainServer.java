@@ -33,7 +33,8 @@ public class MainServer {
 		servletContextHandler.setContextPath("/");
 		servletContextHandler.addServlet(RegistrationServlet.class, "/register");
 		servletContextHandler.addServlet(LogInServlet.class, "/login");
-		servletContextHandler.addServlet(HotelsServlet.class, "/hotels");// buna cozum bul !!!
+		servletContextHandler.addServlet(HotelsServlet.class, "/hotels");
+		servletContextHandler.addServlet(ReviewsServlet.class, "/reviews");
 		servletContextHandler.setAttribute("tsData", tsData);
 		
 		HandlerList handlers = new HandlerList();
