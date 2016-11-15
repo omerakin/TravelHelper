@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -358,7 +359,7 @@ public class ThreadSafeHotelData {
 	public void listGeneralHotelsInfo(PrintWriter printWriter, Connection connection) {
 		lock.lockRead();
 		try {
-			int count = 0;
+			/*
 			for(String hotel_id: hotelsGivenByHotelId.keySet()){
 				double averageRating = 0;
 				if(reviewsGivenByHotelId.containsKey(hotel_id)){
@@ -378,40 +379,39 @@ public class ThreadSafeHotelData {
 				printWriter.println("<p><input type=\"submit\" value=\"Reviews\"></p>");
 				printWriter.println("</form>");
 				printWriter.println("<p>" + "----------------------------------------------------" + "</p>");
-				
-				/*
-				printWriter.println("<p>" + hotel_id + "</p>");
-				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getHotel_name() + "</p>");
-				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getAddress().getStreet_address() + "</p>");
-				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getAddress().getCity() + "</p>");
-				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getAddress().getState() + "</p>");
-				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getAddress().getCountry() + "</p>");
-				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getAddress().getLongitude() + "</p>");
-				printWriter.println("<p>" + hotelsGivenByHotelId.get(hotel_id).getAddress().getLatitude() + "</p>");
-				printWriter.println("<p>" + averageRating + "</p>");
-				printWriter.println("<p>" + "----------------------------------------------------" + "</p>");
-				
-				try (PreparedStatement statement = connection.prepareStatement("INSERT INTO hotels(hotel_id, hotel_name, hotel_street_address, hotel_city, hotel_state, hotel_country, hotel_longitude, hotel_latitude, hotel_Rating)"
-						+ "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);");) {
-					statement.setString(1, hotel_id);
-					statement.setString(2, hotelsGivenByHotelId.get(hotel_id).getHotel_name());
-					statement.setString(3, hotelsGivenByHotelId.get(hotel_id).getAddress().getStreet_address());
-					statement.setString(4, hotelsGivenByHotelId.get(hotel_id).getAddress().getCity());
-					statement.setString(5, hotelsGivenByHotelId.get(hotel_id).getAddress().getState());
-					statement.setString(6, hotelsGivenByHotelId.get(hotel_id).getAddress().getCountry());
-					statement.setDouble(7, hotelsGivenByHotelId.get(hotel_id).getAddress().getLongitude());
-					statement.setDouble(8, hotelsGivenByHotelId.get(hotel_id).getAddress().getLatitude());
-					statement.setDouble(9, averageRating);
-					statement.executeUpdate();
-					count++;
-					System.out.println("inserted : " + count);
-
-					
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}*/
 			}
+			*/
+			try (PreparedStatement statement = connection.prepareStatement("SELECT hotel_id, hotel_name, hotel_street_address, hotel_city, hotel_state FROM hotels");) {
+				ResultSet results = statement.executeQuery();				
+				while (results.next()) {
+					double averageRating = 0;
+					int count = 0;
+					try(PreparedStatement statementReview = connection.prepareStatement("SELECT rating FROM reviews WHERE hotel_id = ?");){
+						statementReview.setString(1, results.getString("hotel_id"));
+						ResultSet reviewResultSet = statementReview.executeQuery();
+						while(reviewResultSet.next()){
+							String rating = reviewResultSet.getString("rating");
+							averageRating = averageRating + Double.parseDouble(rating);
+							count++;
+						}
+						if (count != 0) { averageRating = (averageRating / count); }  
+					}
+					printWriter.println("<p>" +  "Hotel Name : " + results.getString("hotel_name") + "</p>");
+					printWriter.println("<p>" + "Address : " + results.getString("hotel_street_address") + "</p>");
+					printWriter.println("<p>" + "City : " + results.getString("hotel_city") + ", "
+										+ results.getString("hotel_state") + "</p>");
+					printWriter.println("<p>" + "Rating : " + averageRating + "</p>");
+					printWriter.println("<form action=\"/reviews\" method=\"get\">");
+					printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
+					printWriter.println("<p><input type=\"submit\" value=\"Reviews\"></p>");
+					printWriter.println("</form>");
+					printWriter.println("<p>" + "----------------------------------------------------" + "</p>");
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			
+			
 		} finally {
 			lock.unlockRead();
 		}		
@@ -420,8 +420,7 @@ public class ThreadSafeHotelData {
 	public void listReviewsInfo(PrintWriter printWriter, String hotelId, Connection connection) {
 		lock.lockRead();
 		try {
-			int count = 0;
-			
+			/*
 			if(reviewsGivenByHotelId.containsKey(hotelId)){
 				for(Review hotelIdReview : reviewsGivenByHotelId.get(hotelId)){					
 					printWriter.println("<p>" + "Review by " + hotelIdReview.getUsername() + ": " + "</p>"); 
@@ -433,39 +432,20 @@ public class ThreadSafeHotelData {
 			} else {
 				printWriter.println("<p> There is no review yet for this hotel.</p>");
 			}
-			/*
-			for (String hotel_id_review: reviewsGivenByHotelId.keySet()){
-				for(Review hotelIdReview : reviewsGivenByHotelId.get(hotel_id_review)){
-					
-					printWriter.println("<p>" + "hotel_id : " + hotel_id_review + "</p>");
-					printWriter.println("<p>" + "review_id : " + hotelIdReview.getReview_id() + "</p>"); 
-					printWriter.println("<p>" + "Review_title : " + hotelIdReview.getReview_title() + "</p>");
-					printWriter.println("<p>" + "Review_text : " + hotelIdReview.getReview_text() + "</p>");
-					printWriter.println("<p>" + "Username : " + hotelIdReview.getUsername() + "</p>"); 
-					printWriter.println("<p>" + "IsRecom : " + hotelIdReview.getIsRecom() + "</p>"); 
-					printWriter.println("<p>" + "Rating : " + hotelIdReview.getRating() + "</p>");  
-					printWriter.println("<p>" + "--------------------" + "</p>");
-					
-					try (PreparedStatement statement = connection.prepareStatement("INSERT INTO reviews(hotel_id, review_id, review_title, review_text, username, isRecom, rating)"
-							+ "VALUES(?, ?, ?, ?, ?, ?, ?);");) {
-						statement.setString(1, hotel_id_review);
-						statement.setString(2, hotelIdReview.getReview_id());
-						statement.setString(3, hotelIdReview.getReview_title());
-						statement.setString(4, hotelIdReview.getReview_text());
-						statement.setString(5, hotelIdReview.getUsername());
-						statement.setBoolean(6, hotelIdReview.getIsRecom());
-						statement.setDouble(7, hotelIdReview.getRating());
-						statement.executeUpdate();
-						count++;
-						System.out.println("inserted : " + count);
-					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
+			*/
+			try(PreparedStatement statementReview = connection.prepareStatement("SELECT review_title, review_text, username, rating FROM reviews WHERE hotel_id = ?");){
+				statementReview.setString(1, hotelId);
+				ResultSet reviewResultSet = statementReview.executeQuery();
+				while(reviewResultSet.next()){
+					printWriter.println("<p>" + "Review by " + reviewResultSet.getString("username") + ": " + "</p>"); 
+					printWriter.println("<p>" + "Rating : " + reviewResultSet.getString("rating") + "</p>"); 
+					printWriter.println("<p>" + "Title : " + reviewResultSet.getString("review_title") + "</p>"); 
+					printWriter.println("<p>" + "Text : " + reviewResultSet.getString("review_text") + "</p>"); 
+					printWriter.println("<p>" + "---------------------------------------------------------" + "</p>"); 
+				}  
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-			*/		
-			
 		} finally {
 			lock.unlockRead();
 		}		

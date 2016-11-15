@@ -19,8 +19,7 @@ public class ReviewsServlet extends BaseServlet{
 		PrintWriter printWriter = resp.getWriter();
 		String hotelId = req.getParameter("hotelId");
 		ThreadSafeHotelData tsData = (ThreadSafeHotelData) getServletContext().getAttribute("tsData");
-		DatabaseConnector db;
-		db = new DatabaseConnector("database.properties");
+		DatabaseConnector db = new DatabaseConnector("database.properties"); 
 		try (Connection connection = db.getConnection();) {
 			tsData.listReviewsInfo(printWriter, hotelId, connection);
 		} catch (SQLException e) {

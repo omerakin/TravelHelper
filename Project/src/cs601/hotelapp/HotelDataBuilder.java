@@ -7,20 +7,12 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
 import cs601.concurrent.WorkQueue;
 
-public class HotelDataBuilder {
-
-	private static final Logger logger = LogManager.getLogger();
-	
+public class HotelDataBuilder {	
 	private ThreadSafeHotelData tshdata;
 	private final WorkQueue workQueue;
 	private volatile int numTasks; // how many runnable tasks are pending
@@ -92,13 +84,10 @@ public class HotelDataBuilder {
 			}
 			
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (org.json.simple.parser.ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	
@@ -115,7 +104,6 @@ public class HotelDataBuilder {
 
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
 			
 			JSONParser jsonParser = new JSONParser();
 			try {
@@ -149,14 +137,11 @@ public class HotelDataBuilder {
 				merge(localtshData);
 			
 			} catch (org.json.simple.parser.ParseException e) {
-				// TODO Auto-generated catch block
 				System.out.println(p.toString());
 				e.printStackTrace();
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} finally {
 				decrementNumTask();
@@ -191,7 +176,6 @@ public class HotelDataBuilder {
 				}
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -202,7 +186,6 @@ public class HotelDataBuilder {
 	 * 			- merge local reviews to global review
 	 */
 	public synchronized void merge(ThreadSafeHotelData localtshData) {
-		// TODO Auto-generated method stub
 		tshdata.merge(localtshData);
 	}
 
@@ -214,7 +197,6 @@ public class HotelDataBuilder {
 			try {
 				wait();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
