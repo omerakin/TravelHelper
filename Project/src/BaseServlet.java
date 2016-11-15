@@ -58,6 +58,18 @@ public class BaseServlet extends HttpServlet {
 			return;
 		}
 	}
+	
+	protected void endingResponse(HttpServletResponse resp) {
+		try {
+			PrintWriter printWriter = resp.getWriter();
+			printWriter.println("</body>");
+			printWriter.println("</html>");
+			printWriter.flush();
+			resp.setStatus(HttpServletResponse.SC_OK);
+		} catch (IOException e) {
+			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}		
+	}
 
 	protected String getDate() {
 		String format = "hh:mm a 'on' EEE, MMM dd, yyyy";
