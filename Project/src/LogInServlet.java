@@ -1,8 +1,12 @@
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import org.apache.commons.lang3.StringEscapeUtils;
 
 @SuppressWarnings("serial")
@@ -13,8 +17,8 @@ public class LogInServlet extends BaseServlet{
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		prepareResponse("Login", resp);
 		
+		prepareResponse("Login", resp);
 		PrintWriter printWriter = resp.getWriter(); 
 		// error will not be null if we were forwarded her from the post method where something went wrong
 		String error = req.getParameter("error");
@@ -39,9 +43,12 @@ public class LogInServlet extends BaseServlet{
 		// check user's info in the database 
 		Status status = dbhandler.loginUser(user, pass);
 		if(status == Status.OK) { // registration was successful
+			HttpSession session = req.getSession();
+			session.setAttribute("user", user);
 			String url = "/hotels";
 			url = resp.encodeRedirectURL(url);
-			resp.sendRedirect(url);
+			resp.sendRedirect(url);	
+			
 		} else { // if something went wrong
 			String url = "/login?error=" + status.name();
 			url = resp.encodeRedirectURL(url);
