@@ -11,6 +11,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  * Provides base functionality to all servlets in this example. Original author:
@@ -69,6 +70,38 @@ public class BaseServlet extends HttpServlet {
 		} catch (IOException e) {
 			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}		
+	}
+	
+	protected void displayLogOut(HttpServletResponse resp) {
+		try {
+			PrintWriter printWriter = resp.getWriter();
+			printWriter.println("<form action=\"/logout\" method=\"post\">");
+			printWriter.println("<p><input type=\"submit\" value=\"Logout\" style=\"float:right\" ></p>");
+			printWriter.println("</form>");						
+			printWriter.println("<form action=\"/myreviews\" method=\"get\">");
+			printWriter.println("<p><input type=\"submit\" value=\"View My Reviews\" style=\"float:right; margin-right: 10px;\" ></p>");
+			printWriter.println("</form>");
+			printWriter.println("<form action=\"/hotels\" method=\"get\">");
+			printWriter.println("<p><input type=\"submit\" value=\"View Hotels\" style=\"float:right; margin-right: 10px;\" ></p>");
+			printWriter.println("</form>");
+			printWriter.flush();
+			resp.setStatus(HttpServletResponse.SC_OK);
+		} catch (IOException e) {
+			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}		
+	}
+	
+	protected void checkUserSession(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		
+		resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+		resp.setHeader("Pragma", "no-cache"); // HTTP 1.0.
+		resp.setDateHeader("Expires", 0);
+		
+		HttpSession session = req.getSession();
+		String username = (String) session.getAttribute("user");
+		if(username == null || username.isEmpty()){
+			resp.sendRedirect(resp.encodeRedirectURL("/login"));
+		}
 	}
 
 	protected String getDate() {

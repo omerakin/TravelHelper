@@ -1,7 +1,5 @@
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,6 +16,7 @@ public class LogInServlet extends BaseServlet{
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
+		checkUserLoggedIn(req, resp);
 		prepareResponse("Login", resp);
 		PrintWriter printWriter = resp.getWriter(); 
 		// error will not be null if we were forwarded her from the post method where something went wrong
@@ -26,7 +25,8 @@ public class LogInServlet extends BaseServlet{
 			String errorMessage = getStatusMessage(error);
 			printWriter.println("<p style=\"color: red;\">" + errorMessage + "</p>");
 		}
-		displayForm(printWriter);
+		displayLogInForm(printWriter);
+		displayRegister(printWriter);
 		finishResponse(resp);
 	}
 
@@ -56,8 +56,16 @@ public class LogInServlet extends BaseServlet{
 		}
 	}
 	
+	private void checkUserLoggedIn(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		HttpSession session = req.getSession();
+		String username = (String) session.getAttribute("user");
+		if(username != null){
+			resp.sendRedirect(resp.encodeRedirectURL("/hotels"));
+		}
+	}
+	
 	/** Writes and HTML form that shows two textfields and a button to the PrintWriter */
-	private void displayForm(PrintWriter out) {
+	private void displayLogInForm(PrintWriter out) {
 		assert out != null;
 
 		out.println("<form action=\"/login\" method=\"post\">"); // the form will be processed by POST
@@ -72,6 +80,15 @@ public class LogInServlet extends BaseServlet{
 		out.println("</tr>");
 		out.println("</table>");
 		out.println("<p><input type=\"submit\" value=\"Login\"></p>");
+		out.println("</form>");
+	}
+	
+	private void displayRegister(PrintWriter out) {
+		assert out != null;
+		
+		out.println("<form action=\"/register\" method=\"get\">");
+		out.println("<p>-------------------------- or --------------------------</p>");
+		out.println("<p><input type=\"submit\" value=\"Register\"></p>");
 		out.println("</form>");
 	}
 

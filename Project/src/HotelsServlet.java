@@ -16,16 +16,12 @@ public class HotelsServlet extends BaseServlet {
 	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-				
+		
+		checkUserSession(req, resp);
 		prepareResponse("Hotels", resp);
+		displayLogOut(resp);
 		listGeneralHotelsInfo(resp);
 		endingResponse(resp);
-		
-	}
-
-
-	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
 	}
 

@@ -275,7 +275,7 @@ public class DatabaseHandler {
 		}
 		
 		// make sure password satisfies a set of reasonable requirements
-		Pattern pattern = Pattern.compile("((?=.*[a-zA-Z0-9])(?=.*[@#$%!^:\\?\\+\\']).{6,20})");
+		Pattern pattern = Pattern.compile("((?=.*[a-zA-Z0-9])(?=.*[@#$%!^:\\?\\+\\']).{6,25})");
 		Matcher matcher = pattern.matcher(newpass);
 		if(!matcher.matches()){
 			status = Status.INVALID_PASSWORD;

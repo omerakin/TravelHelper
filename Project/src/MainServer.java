@@ -23,6 +23,8 @@ public class MainServer {
 		servletContextHandler.addServlet(LogInServlet.class, "/login");
 		servletContextHandler.addServlet(HotelsServlet.class, "/hotels");
 		servletContextHandler.addServlet(ReviewsServlet.class, "/reviews");
+		servletContextHandler.addServlet(MyReviewsServlet.class, "/myreviews");
+		servletContextHandler.addServlet(LogoutServlet.class, "/logout");
 		
 		HandlerList handlers = new HandlerList();
 		handlers.setHandlers(new Handler[] {servletContextHandler});

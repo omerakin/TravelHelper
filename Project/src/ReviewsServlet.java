@@ -27,7 +27,9 @@ public class ReviewsServlet extends BaseServlet{
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
+		checkUserSession(req, resp);
 		prepareResponse("Reviews", resp);
+		displayLogOut(resp);
 		listReviewsInfo(req, resp, "Get");
 		endingResponse(resp);
 		
@@ -36,7 +38,9 @@ public class ReviewsServlet extends BaseServlet{
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
+		checkUserSession(req, resp);
 		prepareResponse("Reviews", resp);
+		displayLogOut(resp);
 		String clicked_button = req.getParameter("button").trim();
 		if (clicked_button.equals("Submit")) {			
 			insertReview(req, resp);
