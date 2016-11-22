@@ -47,7 +47,6 @@ public class RegistrationServlet extends BaseServlet {
 			throws IOException {
 		prepareResponse("Register New User", response);
 
-		
 		// Get data from the textfields of the html form
 		String newuser = request.getParameter("user");
 		String newpass = request.getParameter("pass");
@@ -66,33 +65,6 @@ public class RegistrationServlet extends BaseServlet {
 			url = response.encodeRedirectURL(url);
 			response.sendRedirect(url); // send a get request  (redirect to the same path)
 		}
-		
-		
-		/*
-		String username = "";
-		String password = "";
-		PrintWriter printWriter = response.getWriter();
-		
-		DatabaseConnector db = new DatabaseConnector("database.properties");
-		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement("SELECT username FROM reviews");) {
-			ResultSet results = statement.executeQuery();				
-			while (results.next()) {
-				if(!results.getString("username").trim().equals("anonymous")){
-					username = results.getString("username").trim().replace(" ", "");
-					password = username + "123456a@";
-					printWriter.println("<p>" + username + "</p>");
-					printWriter.println("<p>" + password + "</p>");
-					printWriter.println("-------------------------");
-					Status status = dbhandler.registerUser(username, password);
-					printWriter.println(status);
-				}				
-			}			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
-		
 	}
 
 	/** Writes and HTML form that shows two textfields and a button to the PrintWriter */
