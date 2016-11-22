@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
@@ -59,6 +60,9 @@ public class RegistrationServlet extends BaseServlet {
 
 		if(status == Status.OK) { // registration was successful
 			response.getWriter().println("Registered! Database updated.");
+			HttpSession session = request.getSession();
+			session.setAttribute("user", newuser);
+			response.sendRedirect(response.encodeRedirectURL("/hotels"));
 		}
 		else { // if something went wrong
 			String url = "/register?error=" + status.name();
