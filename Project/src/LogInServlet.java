@@ -7,12 +7,20 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
+/**
+ * 
+ * @author akin_
+ *		Display Login Form and check user's inputs.
+ */
 @SuppressWarnings("serial")
 public class LogInServlet extends BaseServlet{
 	
 	// DatabaseHandler interacts with the MySQL database
 	private static final DatabaseHandler dbhandler = DatabaseHandler.getInstance();
 
+	/**
+	 * Login form is formed. And if any error occurred, it shows the errorMessage
+	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
@@ -30,6 +38,10 @@ public class LogInServlet extends BaseServlet{
 		finishResponse(resp);
 	}
 
+	/**
+	 * Gets username and password from user and checks they are in correct form, 
+	 * then redirect the user to page.
+	 */
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		prepareResponse("Login User", resp);
@@ -56,6 +68,18 @@ public class LogInServlet extends BaseServlet{
 		}
 	}
 	
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @throws IOException
+	 * 
+	 * 		Checks that username parameter is null or not,
+	 * 			if it is null, user can log in
+	 * 			if it is not, user redirects to the hotels page.
+	 */
 	private void checkUserLoggedIn(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		HttpSession session = req.getSession();
 		String username = (String) session.getAttribute("user");
@@ -83,6 +107,13 @@ public class LogInServlet extends BaseServlet{
 		out.println("</form>");
 	}
 	
+	/**
+	 * 
+	 * @param out
+	 * 			- PrintWriter
+	 * 	
+	 * 			Shows the register button
+	 */
 	private void displayRegister(PrintWriter out) {
 		assert out != null;
 		

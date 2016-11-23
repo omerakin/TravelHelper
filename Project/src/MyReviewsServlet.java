@@ -10,11 +10,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+/**
+ * 
+ * @author akin_
+ *			List MyReviews info
+ */
 @SuppressWarnings("serial")
 public class MyReviewsServlet extends BaseServlet {
 	private static final String MYREVIEWS_SQL = "SELECT hotel_id, review_title, review_text, username, rating FROM reviews WHERE username = ?";
 	private static final String HOTELS_SQL = "SELECT hotel_name FROM hotels WHERE hotel_id = ?";
 	
+	/**
+	 *  Firstly checks user already logged in or not,
+	 *  if logged in, then list all reviews info that user submitted.
+	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		checkUserSession(req, resp);
@@ -24,6 +33,21 @@ public class MyReviewsServlet extends BaseServlet {
 		endingResponse(resp);
 	}
 
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @param clicked_button
+	 * 			- which button is clicked checks
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * 
+	 * 			Connect database and get all review information that user submitted such as hotel_name,
+	 * 		rating, review_title, review_text.
+	 * 			 
+	 */
 	private void listMyReviewsInfo(HttpServletRequest req, HttpServletResponse resp, String clicked_button) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
 		PrintWriter printWriter = resp.getWriter();
@@ -51,12 +75,7 @@ public class MyReviewsServlet extends BaseServlet {
 					count++; 
 				}
 				printWriter.println("<p>" + "---------------------------------------------------------" + "</p>"); 
-			}
-			/*
-			if(count == 0 && (!clicked_button.equals("Modify"))) {
-				displayReview(printWriter, reviewResultSet.getString("hotel_id"));
-			}
-			*/			
+			}			
 			reviewResultSet.close();
 			statementReview.close();			
 			connection.close();
@@ -65,7 +84,16 @@ public class MyReviewsServlet extends BaseServlet {
 		}
 	}
 
-	
+	/**
+	 * 
+	 * @param printWriter
+	 * 			- PrintWriter
+	 * @param hotelId
+	 * 			- Hotel Id 
+	 * 
+	 * 			Modify and Delete buttons are formed. And if one of them is clicked, 
+	 * 		with the hotel_id info, it is sent to the post method of reviewsservlet.
+	 */
 	private void modifyOrDeleteReview(PrintWriter printWriter, String hotelId) {
 		printWriter.println("<form action=\"/reviews\" method=\"post\">");
 		printWriter.println("<p><input type=\"submit\" name=\"button\" value=\"Modify\"> &nbsp; &nbsp; &nbsp; &nbsp; <input type=\"submit\" name=\"button\" value=\"Delete\"> </p>");

@@ -22,6 +22,15 @@ import javax.servlet.http.HttpSession;
 @SuppressWarnings("serial")
 public class BaseServlet extends HttpServlet {
 
+	/**
+	 * 
+	 * @param title
+	 * 			- Head of page
+	 * @param response
+	 * 			- HttpServletResponse
+	 * 
+	 * 			HTML header of page
+	 */
 	protected void prepareResponse(String title, HttpServletResponse response) {
 		try {
 			PrintWriter writer = response.getWriter();
@@ -38,6 +47,13 @@ public class BaseServlet extends HttpServlet {
 		}
 	}
 
+	/**
+	 * 
+	 * @param response
+	 * 			- HttpServletResponse
+	 * 
+	 * 			HTML footer of page with last updated info
+	 */
 	protected void finishResponse(HttpServletResponse response) {
 		try {
 			PrintWriter writer = response.getWriter();
@@ -60,6 +76,13 @@ public class BaseServlet extends HttpServlet {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param response
+	 * 			- HttpServletResponse
+	 * 
+	 * 			HTML footer of page
+	 */
 	protected void endingResponse(HttpServletResponse resp) {
 		try {
 			PrintWriter printWriter = resp.getWriter();
@@ -72,6 +95,13 @@ public class BaseServlet extends HttpServlet {
 		}		
 	}
 	
+	/**
+	 * 
+	 * @param resp
+	 * 		 	- HttpServletResponse
+	 * 
+	 * 			Display View Hotels, View My Reviews,Logout buttons
+	 */
 	protected void displayLogOut(HttpServletResponse resp) {
 		try {
 			PrintWriter printWriter = resp.getWriter();
@@ -91,6 +121,17 @@ public class BaseServlet extends HttpServlet {
 		}		
 	}
 	
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @throws IOException
+	 * 
+	 * 			Clear cache in case of browser back button pressed.
+	 * 			And checks user is already logged or not. Then redirects
+	 */
 	protected void checkUserSession(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		
 		resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
@@ -104,6 +145,11 @@ public class BaseServlet extends HttpServlet {
 		}
 	}
 
+	/**
+	 * 
+	 * @return
+	 * 		- Calendar date
+	 */
 	protected String getDate() {
 		String format = "hh:mm a 'on' EEE, MMM dd, yyyy";
 		DateFormat dateFormat = new SimpleDateFormat(format);
@@ -150,12 +196,24 @@ public class BaseServlet extends HttpServlet {
 		}
 	}
 
+	/**
+	 * Clear cookie
+	 * 
+	 * @param cookieName
+	 * @param response
+	 */
 	protected void clearCookie(String cookieName, HttpServletResponse response) {
 		Cookie cookie = new Cookie(cookieName, null);
 		cookie.setMaxAge(0);
 		response.addCookie(cookie);
 	}
 
+	/**
+	 * Get Status message
+	 * 
+	 * @param errorName
+	 * @return
+	 */
 	protected String getStatusMessage(String errorName) {
 		Status status = null;
 
@@ -168,6 +226,12 @@ public class BaseServlet extends HttpServlet {
 		return status.toString();
 	}
 
+	/**
+	 * Get Status message
+	 * 
+	 * @param code
+	 * @return
+	 */
 	protected String getStatusMessage(int code) {
 		Status status = null;
 

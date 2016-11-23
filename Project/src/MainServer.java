@@ -19,11 +19,12 @@ public class MainServer {
 		
 		ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		servletContextHandler.setContextPath("/");
+		servletContextHandler.addServlet(OtherServlet.class, "/");
 		servletContextHandler.addServlet(RegistrationServlet.class, "/register");
 		servletContextHandler.addServlet(LogInServlet.class, "/login");
 		servletContextHandler.addServlet(HotelsServlet.class, "/hotels");
 		servletContextHandler.addServlet(ReviewsServlet.class, "/reviews");
-		servletContextHandler.addServlet(MyReviewsServlet.class, "/myreviews");
+		servletContextHandler.addServlet(MyReviewsServlet.class, "/myreviews");		
 		servletContextHandler.addServlet(LogoutServlet.class, "/logout");
 		
 		HandlerList handlers = new HandlerList();

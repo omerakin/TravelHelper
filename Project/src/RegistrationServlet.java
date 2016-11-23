@@ -26,6 +26,9 @@ public class RegistrationServlet extends BaseServlet {
 	private static final DatabaseHandler dbhandler = DatabaseHandler.getInstance();
 
 
+	/**
+	 * Register form is formed. And if any error occurred, it shows the errorMessage
+	 */
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
@@ -43,6 +46,10 @@ public class RegistrationServlet extends BaseServlet {
 		finishResponse(response);
 	}
 
+	/**
+	 * Gets username and password from user and checks they are in correct form, 
+	 * then redirect the user to page.
+	 */
 	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
@@ -60,9 +67,7 @@ public class RegistrationServlet extends BaseServlet {
 
 		if(status == Status.OK) { // registration was successful
 			response.getWriter().println("Registered! Database updated.");
-			HttpSession session = request.getSession();
-			session.setAttribute("user", newuser);
-			response.sendRedirect(response.encodeRedirectURL("/hotels"));
+			response.sendRedirect(response.encodeRedirectURL("/login"));
 		}
 		else { // if something went wrong
 			String url = "/register?error=" + status.name();

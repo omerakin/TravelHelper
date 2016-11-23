@@ -2,6 +2,7 @@
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.sql.Connection;
@@ -12,6 +13,8 @@ import java.sql.Statement;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Handles all database-related actions. Uses singleton design pattern. Modified
@@ -75,6 +78,13 @@ public class DatabaseHandler {
 
 	/** Used to remove a user from the database. */
 	private static final String DELETE_SQL = "DELETE FROM login_users WHERE username = ?";
+	
+	/** Used to get information about hotels. */
+	private static final String HOTELS_HOTELS_SQL = "SELECT hotel_id, hotel_name, hotel_street_address, hotel_city, hotel_state FROM hotels";
+	
+	/** Used to get rating from specific hotel_id. */
+	private static final String HOTELS_REVIEWS_SQL = "SELECT rating FROM reviews WHERE hotel_id = ?";
+	
 
 	/** Used to configure connection to database. */
 	private DatabaseConnector db;
@@ -399,5 +409,50 @@ public class DatabaseHandler {
 		}
 
 		return salt;
+	}
+	
+
+	/**
+	 * 
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * 
+	 * 			Connect database and get all information about hotels such as hotel_name, 
+	 * 			hotel_street_address, hotel_city, hotel_state
+	 */
+	public void listGeneralHotelsInfo(HttpServletResponse resp) throws FileNotFoundException, IOException {
+		PrintWriter printWriter = resp.getWriter();
+		DatabaseConnector db = new DatabaseConnector("database.properties");
+		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(HOTELS_HOTELS_SQL);) {
+			ResultSet results = statement.executeQuery();				
+			while (results.next()) {
+				double averageRating = 0;
+				int count = 0;
+				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+					statementReview.setString(1, results.getString("hotel_id"));
+					ResultSet reviewResultSet = statementReview.executeQuery();
+					while(reviewResultSet.next()){
+						String rating = reviewResultSet.getString("rating");
+						averageRating = averageRating + Double.parseDouble(rating);
+						count++;
+					}
+					if (count != 0) { averageRating = (averageRating / count); }  
+				}
+				printWriter.println("<p>" +  "Hotel Name : " + results.getString("hotel_name") + "</p>");
+				printWriter.println("<p>" + "Address : " + results.getString("hotel_street_address") + "</p>");
+				printWriter.println("<p>" + "City : " + results.getString("hotel_city") + ", "
+									+ results.getString("hotel_state") + "</p>");
+				printWriter.println("<p>" + "Rating : " + averageRating + "</p>");
+				printWriter.println("<form action=\"/reviews\" method=\"get\">");
+				printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
+				printWriter.println("<p><input type=\"submit\" value=\"Reviews\"></p>");
+				printWriter.println("</form>");
+				printWriter.println("<p>" + "----------------------------------------------------" + "</p>");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}			
 	}
 }

@@ -14,7 +14,11 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
-
+/**
+ * 
+ * @author akin_
+ *		List Reviews info
+ */
 @SuppressWarnings("serial")
 public class ReviewsServlet extends BaseServlet{
 	private static final String REVIEWS_SQL = "SELECT review_title, review_text, username, rating FROM reviews WHERE hotel_id = ?";
@@ -23,7 +27,10 @@ public class ReviewsServlet extends BaseServlet{
 			+ "VALUES (?, ?, ?, ?, ?, ?, ?);";
 	private static final String DELETE_REVIEWS_SQL = "DELETE FROM reviews WHERE hotel_id = ? AND username = ?";
 	
-	
+	/**
+	 *  Firstly checks user already logged in or not,
+	 *  if logged in, then list all reviews info to the user for specific hotel
+	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
@@ -35,6 +42,13 @@ public class ReviewsServlet extends BaseServlet{
 		
 	}
 
+	/**
+	 *  Firstly checks user already logged in or not,
+	 *  if logged in, then checks which button is pressed,
+	 *  				if Submit is pressed, user's review is inserted to reviews
+	 *  				if Delete is pressed, user's review is deleted
+	 *  				if Modify is pressed, user's review is modified. 
+	 */
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
@@ -55,6 +69,17 @@ public class ReviewsServlet extends BaseServlet{
 		
 	}
 
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * 				
+	 * 			user's review information is uploaded to the reviews table
+	 */
 	private void insertReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
 		DatabaseConnector db = new DatabaseConnector("database.properties");
@@ -86,6 +111,17 @@ public class ReviewsServlet extends BaseServlet{
 		
 	}
 	
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * 
+	 * 			user's review information is deleted from the reviews table
+	 */
 	private void deleteReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
 		DatabaseConnector db = new DatabaseConnector("database.properties");
@@ -103,6 +139,17 @@ public class ReviewsServlet extends BaseServlet{
 		}		
 	}
 	
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * 
+	 * 			user's review information is modified and again uploaded to the reviews table
+	 */
 	private void modifyReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
 		DatabaseConnector db = new DatabaseConnector("database.properties");
@@ -140,6 +187,22 @@ public class ReviewsServlet extends BaseServlet{
 		}		
 	}
 
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @param clicked_button
+	 * 			- which button is clicked checks
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * 
+	 * 			Connect database and get all review information for specific hotel such as username, 
+	 * 		rating, review_title, review_text
+	 * 			Compare username with user's username, if they are equal, 
+	 * 		it allows user to edit his/her own review such as modify or delete 
+	 */
 	private void listReviewsInfo(HttpServletRequest req, HttpServletResponse resp, String clicked_button) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
 		PrintWriter printWriter = resp.getWriter();
@@ -173,6 +236,16 @@ public class ReviewsServlet extends BaseServlet{
 		}
 	}
 
+	/**
+	 * 
+	 * @param printWriter
+	 * 			- PrintWriter
+	 * @param hotelId
+	 * 			- Hotel Id 
+	 * 
+	 * 			Modify and Delete buttons are formed. And if one of them is clicked, 
+	 * 		with the hotel_id info, it is sent to the post method of reviewsservlet.
+	 */
 	private void modifyOrDeleteReview(PrintWriter printWriter, String hotelId) {
 		printWriter.println("<form action=\"/reviews\" method=\"post\">");
 		printWriter.println("<p><input type=\"submit\" name=\"button\" value=\"Modify\"> &nbsp; &nbsp; &nbsp; &nbsp; <input type=\"submit\" name=\"button\" value=\"Delete\"> </p>");
@@ -180,6 +253,16 @@ public class ReviewsServlet extends BaseServlet{
 		printWriter.println("</form>");	
 	}
 
+	/**
+	 * 
+	 * @param printWriter
+	 * 			- PrintWriter
+	 * @param hotelId
+	 * 			- Hotel Id
+	 * 
+	 * 			Display review information areas such as Review title, Review text, Rating
+	 * 		and if it is clicked, information are sent to the post method of reviewsservlet. 
+	 */
 	private void displayReview(PrintWriter printWriter, String hotelId) {
 		printWriter.println("<form action=\"/reviews\" method=\"post\">");
 		printWriter.println("Review title:  <input type=\"text\" name=\"user_review_title\" size=\"97\">  </br>");
@@ -195,6 +278,21 @@ public class ReviewsServlet extends BaseServlet{
 		printWriter.println("</form>");
 	}
 	
+	/**
+	 * 
+	 * @param printWriter
+	 * 			- PrintWriter
+	 * @param hotelId
+	 * 			- Hotel Id
+	 * @param review_title
+	 * 			- Review Title
+	 * @param review_text
+	 * 			- Review Text
+	 * @param rating
+	 * 			- Rating
+	 * 
+	 * 			For the Modify, user's review information is filled.
+	 */
 	private void prepareReview(PrintWriter printWriter, String hotelId, String review_title, String review_text, String rating) {
 		printWriter.println("<form action=\"/reviews\" method=\"post\">");
 		printWriter.println("Review title:  <input type=\"text\" name=\"user_review_title\" size=\"97\" value=\"" + review_title + "\">  </br>");
