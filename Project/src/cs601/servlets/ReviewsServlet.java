@@ -1,3 +1,4 @@
+package cs601.servlets;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -223,7 +224,7 @@ public class ReviewsServlet extends BaseServlet{
 					modifyOrDeleteReview(printWriter, hotelId);
 					count++; 
 				}
-				printWriter.println("<p>" + "---------------------------------------------------------" + "</p>"); 
+				printWriter.println("<hr>"); 
 			}
 			if(count == 0 && (!clicked_button.equals("Modify"))) {
 				displayReview(printWriter, hotelId);

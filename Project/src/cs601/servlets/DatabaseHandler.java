@@ -1,9 +1,14 @@
+package cs601.servlets;
 
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.math.BigInteger;
+import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,7 +19,17 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  * Handles all database-related actions. Uses singleton design pattern. Modified
@@ -84,6 +99,12 @@ public class DatabaseHandler {
 	
 	/** Used to get rating from specific hotel_id. */
 	private static final String HOTELS_REVIEWS_SQL = "SELECT rating FROM reviews WHERE hotel_id = ?";
+	
+	/** Used to get information about hotels. */
+	private static final String HOTEL_HOTEL_SQL = "SELECT hotel_id, hotel_name, hotel_street_address, hotel_city, hotel_state FROM hotels WHERE hotel_id = ?";
+	
+	/** Used to get information about hotel for tourist attractions. */
+	private static final String TOURIST_HOTEL_SQL = "SELECT hotel_id, hotel_city, hotel_longitude, hotel_latitude FROM hotels WHERE hotel_id = ?";
 	
 
 	/** Used to configure connection to database. */
@@ -440,19 +461,98 @@ public class DatabaseHandler {
 					}
 					if (count != 0) { averageRating = (averageRating / count); }  
 				}
-				printWriter.println("<p>" +  "Hotel Name : " + results.getString("hotel_name") + "</p>");
-				printWriter.println("<p>" + "Address : " + results.getString("hotel_street_address") + "</p>");
-				printWriter.println("<p>" + "City : " + results.getString("hotel_city") + ", "
-									+ results.getString("hotel_state") + "</p>");
-				printWriter.println("<p>" + "Rating : " + averageRating + "</p>");
-				printWriter.println("<form action=\"/reviews\" method=\"get\">");
+				printWriter.println("<form action=\"/hotel\" method=\"get\">");
 				printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
-				printWriter.println("<p><input type=\"submit\" value=\"Reviews\"></p>");
+				printWriter.println("<p>" +  "Hotel Name : " +"<input type=\"submit\" value=\""+ results.getString("hotel_name")+ "\" "
+						+ "style=\"background-color: Transparent; cursor:pointer; overflow: hidden; color: blue; border: none; text-decoration: underline;\">" + "</p>");
 				printWriter.println("</form>");
-				printWriter.println("<p>" + "----------------------------------------------------" + "</p>");
+				printWriter.println("<p>" + "Total Reviews : " + count + "</p>");
+				printWriter.println("<p>" + "Rating : " + averageRating + "</p>");
+				printWriter.println("<hr>");
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}			
 	}
+
+	/**
+	 * 
+	 * @param req 
+	 * 			- HttpServletRequest
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * 
+	 * 			Connect database and get specific information about hotel such as hotel_name, 
+	 * 			hotel_street_address, hotel_city, hotel_state
+	 */
+	public void listHotelInfo(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
+		PrintWriter printWriter = resp.getWriter();
+		DatabaseConnector db = new DatabaseConnector("database.properties");
+		String hotelId = req.getParameter("hotelId");
+		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
+		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(HOTEL_HOTEL_SQL);) {
+			statement.setString(1, hotelId);
+			ResultSet results = statement.executeQuery();				
+			if (results.next()) {
+				double averageRating = 0;
+				int count = 0;
+				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+					statementReview.setString(1, results.getString("hotel_id"));
+					ResultSet reviewResultSet = statementReview.executeQuery();
+					while(reviewResultSet.next()){
+						String rating = reviewResultSet.getString("rating");
+						averageRating = averageRating + Double.parseDouble(rating);
+						count++;
+					}
+					if (count != 0) { averageRating = (averageRating / count); }  
+				}
+				printWriter.println("<img src=\"WebContent/images/hotel_image.gif" + "\" />");
+				printWriter.println("<p>" +  "Hotel Name : " + results.getString("hotel_name")+ "</p>");
+				printWriter.println("<p>" + "Address : " + results.getString("hotel_street_address") + "</p>");
+				printWriter.println("<p>" + "City : " + results.getString("hotel_city") + ", " + results.getString("hotel_state") + "</p>");
+				printWriter.println("<p>" + "Rating : " + averageRating + "</p>");
+				printWriter.println("<p> the link to expedia's page of this hotel </p>");				
+				printWriter.println("<form action=\"/reviews\" method=\"get\">");
+				printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
+				printWriter.println("<p><input type=\"submit\" value=\"Reviews\" style=\"float:left;\"></p>");
+				printWriter.println("</form>");
+				printWriter.println("<form action=\"/touristattraction\" method=\"get\">");
+				printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
+				printWriter.println("<p><input type=\"submit\" value=\"Tourist Attraction\" style=\"float:left; margin-left: 25px;\"></p>");
+				printWriter.println("</form>");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}				
+	}	
+
+
+	/**
+	 * 
+	 * @return
+	 * 		- Connect database and returns String, which is a partial query containing location information for this hotel
+	 */
+	public String generateQueries(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
+		DatabaseConnector db = new DatabaseConnector("database.properties");
+		String hotelId = req.getParameter("hotelId");
+		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
+		String query = "";
+		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(TOURIST_HOTEL_SQL);) {
+			statement.setString(1, hotelId);
+			ResultSet results = statement.executeQuery();				
+			if (results.next()) {
+				query = "tourist%20attractions+in+"
+						+ results.getString("hotel_city").replaceAll(" ", "%20")
+						+ "&location="
+						+ results.getString("hotel_latitude") + ","
+						+ results.getString("hotel_longitude");
+			}			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return query;
+	}
+	
 }

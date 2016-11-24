@@ -1,3 +1,4 @@
+package cs601.servlets;
 
 
 import org.eclipse.jetty.server.Handler;
@@ -23,7 +24,9 @@ public class MainServer {
 		servletContextHandler.addServlet(RegistrationServlet.class, "/register");
 		servletContextHandler.addServlet(LogInServlet.class, "/login");
 		servletContextHandler.addServlet(HotelsServlet.class, "/hotels");
+		servletContextHandler.addServlet(HotelServlet.class, "/hotel");
 		servletContextHandler.addServlet(ReviewsServlet.class, "/reviews");
+		servletContextHandler.addServlet(TouristAttractionServlet.class, "/touristattraction");
 		servletContextHandler.addServlet(MyReviewsServlet.class, "/myreviews");		
 		servletContextHandler.addServlet(LogoutServlet.class, "/logout");
 		
