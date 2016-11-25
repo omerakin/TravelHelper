@@ -1,10 +1,15 @@
 package cs601.servlets;
 
 
+import java.nio.file.Paths;
+
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+
+import cs601.hotelapp.HotelDataBuilder;
+import cs601.hotelapp.ThreadSafeHotelData;
 
 /**
  * Demonstrates how to use Jetty, servlets and JDBC for user registration. This is a
@@ -14,7 +19,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 public class MainServer {
 	private static int PORT = 8080;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) {		
 		// Server
 		Server server = new Server(PORT);
 		

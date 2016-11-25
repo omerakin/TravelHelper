@@ -128,8 +128,10 @@ public class ThreadSafeHotelData {
 				// set the false.
 				isSuccessful = false;
 			} else {
+				date = date.replace("T", " ");
+				date = date.replace("Z", "");
 				//Check the date is correct format or not.
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD HH:MM:SS");
 				try {
 					Date date1 = sdf.parse(date);
 					// set the true.
@@ -142,6 +144,7 @@ public class ThreadSafeHotelData {
 			// If successful is true add it.
 			//if(isSuccessful && hotelsGivenByHotelId.containsKey(hotelId)) {
 			if(isSuccessful) {
+				System.out.println(date);
 				//Set the values to the reviews object.
 				reviews = new Review(reviewId, hotelId, reviewTitle, review, username, isRecom, date, rating);			
 				//Check that if hotel id already exist or not
@@ -354,5 +357,63 @@ public class ThreadSafeHotelData {
 		} finally {
 			lock.unlockRead();
 		}
+	}
+
+	public void listReviewsInfo(PrintWriter printWriter, Connection connection) {
+		lock.lockRead();
+		try {
+			int count = 0;
+			
+			for (String hotel_id_review: reviewsGivenByHotelId.keySet()){
+				for(Review hotelIdReview : reviewsGivenByHotelId.get(hotel_id_review)){
+					
+					printWriter.println("<p>" + "hotel_id : " + hotel_id_review + "</p>");
+					printWriter.println("<p>" + "review_id : " + hotelIdReview.getReview_id() + "</p>"); 
+					printWriter.println("<p>" + "Review_title : " + hotelIdReview.getReview_title() + "</p>");
+					printWriter.println("<p>" + "Review_text : " + hotelIdReview.getReview_text() + "</p>");
+					printWriter.println("<p>" + "Username : " + hotelIdReview.getUsername() + "</p>"); 
+					printWriter.println("<p>" + "IsRecom : " + hotelIdReview.getIsRecom() + "</p>"); 
+					printWriter.println("<p>" + "Rating : " + hotelIdReview.getRating() + "</p>"); 
+					printWriter.println("<p>" + "Date : " + hotelIdReview.getDate() + "</p>");
+					printWriter.println("<p>" + "--------------------" + "</p>");
+					/*
+					try (PreparedStatement statement = connection.prepareStatement("INSERT INTO reviews(hotel_id, review_id, review_title, review_text, username, isRecom, rating, date)"
+							+ "VALUES(?, ?, ?, ?, ?, ?, ?, ?);");) {
+						statement.setString(1, hotel_id_review);
+						statement.setString(2, hotelIdReview.getReview_id());
+						statement.setString(3, hotelIdReview.getReview_title());
+						statement.setString(4, hotelIdReview.getReview_text());
+						statement.setString(5, hotelIdReview.getUsername());
+						statement.setBoolean(6, hotelIdReview.getIsRecom());
+						statement.setDouble(7, hotelIdReview.getRating());
+						String stringDate = hotelIdReview.getDate();
+						SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD HH:MM:SS");
+						Date date1 = null;
+						try {
+							date1 = sdf.parse(stringDate);
+							// set the true.
+							isSuccessful = true;
+						} catch (ParseException e) {
+							//e.printStackTrace();
+							System.out.println("Date is invalid!");
+						}
+						statement.setTimestamp(8, new java.sql.Timestamp(date1.getTime()));
+						System.out.println(new java.sql.Timestamp(date1.getTime()).toString());
+						statement.executeUpdate();
+						count++;
+						
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					*/
+				}
+			}
+			System.out.println("inserted : " + count);		
+			
+		} finally {
+			lock.unlockRead();
+		}	
+		
 	}
 }

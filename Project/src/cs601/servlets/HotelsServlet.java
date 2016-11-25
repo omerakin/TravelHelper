@@ -24,8 +24,25 @@ public class HotelsServlet extends BaseServlet {
 		checkUserSession(req, resp);
 		prepareResponse("Hotels", resp);
 		displayLogOut(resp);
+		searchHotels(resp);
 		dbhandler.listGeneralHotelsInfo(resp);
 		endingResponse(resp);	
 	}
+
+	/**
+	 *  Firstly checks user already logged in or not,
+	 *  if logged in, then list all searched hotels info to the user
+	 */
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		checkUserSession(req, resp);
+		prepareResponse("Hotels", resp);
+		displayLogOut(resp);
+		searchHotels(resp);
+		dbhandler.listSearchedHotelsInfo(req, resp);
+		endingResponse(resp);
+	}
+	
+	
 
 }

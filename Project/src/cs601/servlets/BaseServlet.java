@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 /**
  * Provides base functionality to all servlets in this example. Original author:
  * Prof. Engle
@@ -143,6 +145,62 @@ public class BaseServlet extends HttpServlet {
 		String username = (String) session.getAttribute("user");
 		if(username == null || username.isEmpty()){
 			resp.sendRedirect(resp.encodeRedirectURL("/login"));
+		}
+	}
+	
+	/**
+	 * 
+	 * @param resp
+	 * 		 	- HttpServletResponse
+	 * 
+	 * 			Display Search Hotels,and button
+	 */
+	protected void searchHotels(HttpServletResponse resp) {
+		try {
+			PrintWriter printWriter = resp.getWriter();
+			printWriter.println("<form action=\"/hotels\" method=\"post\">");
+			printWriter.println("<p><input type=\"search\" name=\"searchHotel\" id=\"searchHotel\" placeholder=\"Search for hotels..\" "
+					+ "style=\" float:left; width:500px; height:25px;\"> &nbsp;");
+			printWriter.println("<input type=\"submit\" value=\"Search\" style=\"height:25px;\" ></p>");
+			printWriter.println("</form>");
+			printWriter.flush();
+			resp.setStatus(HttpServletResponse.SC_OK);
+		} catch (IOException e) {
+			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	/**
+	 * 
+	 * @param req 
+	 * 			- HttpServletRequest
+	 * @param resp
+	 * 		 	- HttpServletResponse
+	 * 
+	 * 			Display Sort Reviews,and button
+	 */
+	protected void sortReviews(HttpServletRequest req, HttpServletResponse resp) {
+		try {
+			String hotelId = req.getParameter("hotelId");
+			hotelId = StringEscapeUtils.escapeHtml4(hotelId);
+			PrintWriter printWriter = resp.getWriter();
+			printWriter.println("<form action=\"/reviews\" method=\"post\">");
+			printWriter.println("<p> <b>Sort By:</b> &nbsp; &nbsp;");
+			printWriter.println("<input type=\"submit\" name=\"button\" value=\"Default\" "
+					+ "style=\"background-color: Transparent; cursor:pointer; overflow: hidden; color: blue;\">");
+			printWriter.println("&nbsp; &nbsp; &nbsp;");
+			printWriter.println("<input type=\"submit\" name=\"button\" value=\"By date (most recent ones on top)\" "
+					+ "style=\"background-color: Transparent; cursor:pointer; overflow: hidden; color: blue;\">");
+			printWriter.println("&nbsp; &nbsp; &nbsp;");
+			printWriter.println("<input type=\"submit\" name=\"button\" value=\"By rating (highly rated on top)\" "
+					+ "style=\"background-color: Transparent; cursor:pointer; overflow: hidden; color: blue;\">" + "</p>");
+			printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + hotelId + "\" />");
+			printWriter.println("</form>");
+			printWriter.println("<hr>");
+			printWriter.flush();
+			resp.setStatus(HttpServletResponse.SC_OK);
+		} catch (IOException e) {
+			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 	}
 
