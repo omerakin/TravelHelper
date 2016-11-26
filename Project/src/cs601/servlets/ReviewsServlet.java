@@ -24,7 +24,7 @@ public class ReviewsServlet extends BaseServlet{
 		checkUserSession(req, resp);
 		prepareResponse("Reviews", resp);
 		displayLogOut(resp);
-		sortReviews(req, resp);
+		displaySortReviews(req, resp);
 		dbhandler.listReviewsInfo(req, resp, "Get");
 		endingResponse(resp);		
 	}
@@ -41,7 +41,7 @@ public class ReviewsServlet extends BaseServlet{
 		checkUserSession(req, resp);
 		prepareResponse("Reviews", resp);
 		displayLogOut(resp);
-		sortReviews(req, resp);
+		displaySortReviews(req, resp);
 		String clicked_button = req.getParameter("button").trim();
 		if (clicked_button.equals("Submit")) {			
 			dbhandler.insertReview(req, resp);

@@ -32,7 +32,8 @@ public class MainServer {
 		servletContextHandler.addServlet(HotelServlet.class, "/hotel");
 		servletContextHandler.addServlet(ReviewsServlet.class, "/reviews");
 		servletContextHandler.addServlet(TouristAttractionServlet.class, "/touristattraction");
-		servletContextHandler.addServlet(MyReviewsServlet.class, "/myreviews");		
+		servletContextHandler.addServlet(MyReviewsServlet.class, "/myreviews");	
+		servletContextHandler.addServlet(MyHotelsServlet.class, "/myhotels");
 		servletContextHandler.addServlet(LogoutServlet.class, "/logout");
 		
 		HandlerList handlers = new HandlerList();

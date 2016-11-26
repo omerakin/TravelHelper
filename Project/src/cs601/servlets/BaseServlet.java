@@ -114,6 +114,9 @@ public class BaseServlet extends HttpServlet {
 			printWriter.println("<form action=\"/myreviews\" method=\"get\">");
 			printWriter.println("<p><input type=\"submit\" value=\"View My Reviews\" style=\"float:right; margin-right: 10px;\" ></p>");
 			printWriter.println("</form>");
+			printWriter.println("<form action=\"/myhotels\" method=\"get\">");
+			printWriter.println("<p><input type=\"submit\" value=\"View My Saved Hotels\" style=\"float:right; margin-right: 10px;\" ></p>");
+			printWriter.println("</form>");
 			printWriter.println("<form action=\"/hotels\" method=\"get\">");
 			printWriter.println("<p><input type=\"submit\" value=\"View Hotels\" style=\"float:right; margin-right: 10px;\" ></p>");
 			printWriter.println("</form>");
@@ -179,7 +182,7 @@ public class BaseServlet extends HttpServlet {
 	 * 
 	 * 			Display Sort Reviews,and button
 	 */
-	protected void sortReviews(HttpServletRequest req, HttpServletResponse resp) {
+	protected void displaySortReviews(HttpServletRequest req, HttpServletResponse resp) {
 		try {
 			String hotelId = req.getParameter("hotelId");
 			hotelId = StringEscapeUtils.escapeHtml4(hotelId);
