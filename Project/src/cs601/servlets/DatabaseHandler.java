@@ -40,8 +40,11 @@ public class DatabaseHandler {
 	/** Used to determine if reviews table exists. */
 	private static final String REVIEWS_SQL = "SHOW TABLES LIKE 'reviews';";
 	
-	/** Used to determine if reviews table exists. */
+	/** Used to determine if saved_hotels table exists. */
 	private static final String SAVED_HOTELS_SQL = "SHOW TABLES LIKE 'saved_hotels';";
+	
+	/** Used to determine if liking_reviews table exists. */
+	private static final String LIKING_REVIEWS_SQL = "SHOW TABLES LIKE 'liking_reviews';";
 
 	/** Used to create login_users table for this example. */
 	private static final String CREATE_SQL = "CREATE TABLE login_users ("
@@ -67,6 +70,10 @@ public class DatabaseHandler {
 	private static final String CREATE_SAVED_HOTELS_SQL = "CREATE TABLE saved_hotels ("
 			+ "username char(50) NOT NULL , hotel_id char(20) NOT NULL );";
 	
+	/** Used to create liking_reviews table for this example. */
+	private static final String CREATE_LIKING_REVIEWS_SQL = "CREATE TABLE liking_reviews ("
+			+ "hotel_id char(20) NOT NULL , review_id char(250) NOT NULL , "
+			+ "username char(50) NULL );";	
 
 	/** Used to insert a new user's info into the login_users table */
 	private static final String REGISTER_SQL = "INSERT INTO login_users (username, password, usersalt) "
@@ -110,7 +117,7 @@ public class DatabaseHandler {
 	private static final String DELETE_REVIEWS_SQL = "DELETE FROM reviews WHERE hotel_id = ? AND username = ?";
 	
 	/** Used to get information about reviews. */
-	private static final String REVIEWS_SQL_v1 = "SELECT review_title, review_text, username, rating, date FROM reviews WHERE hotel_id = ?";
+	private static final String REVIEWS_SQL_v1 = "SELECT review_id, review_title, review_text, username, rating, date FROM reviews WHERE hotel_id = ?";
 	
 	/** Used to get information about reviews. */
 	private static final String REVIEWS_SQL_v2 = "SELECT review_title, review_text, username, rating FROM reviews WHERE hotel_id = ? AND username =?";
@@ -132,6 +139,18 @@ public class DatabaseHandler {
 	
 	/** Used to delete information from saved_hotels. */
 	private static final String DELETE_SAVED_HOTELS_SQL = "DELETE FROM saved_hotels WHERE username = ? AND hotel_id = ?";
+	
+	/** Used to get count information from liking_reviews. */
+	private static final String COUNT_LIKING_REVIEWS_SQL = "SELECT COUNT(*) FROM liking_reviews WHERE hotel_id = ? AND review_id = ?";
+	
+	/** Used to get count information from liking_reviews. */
+	private static final String COUNT_USER_LIKED_SQL = "SELECT COUNT(*) FROM liking_reviews WHERE hotel_id = ? AND review_id = ? AND username = ?";
+	
+	/** Used to insert information to liking_reviews. */
+	private static final String INSERT_LIKING_REVIEWS_SQL = "INSERT INTO liking_reviews (hotel_id, review_id, username) VALUES (?, ?, ?);";
+	
+	/** Used to delete information from liking_reviews. */
+	private static final String DELETE_LIKING_REVIEWS_SQL = "DELETE FROM liking_reviews WHERE hotel_id = ? AND review_id = ? AND username = ?";
 	
 	/** Used to configure connection to database. */
 	private DatabaseConnector db;
@@ -237,6 +256,21 @@ public class DatabaseHandler {
 				statement.executeUpdate(CREATE_SAVED_HOTELS_SQL);
 				// Check if create was successful
 				if (!statement.executeQuery(SAVED_HOTELS_SQL).next()) {
+					status = Status.CREATE_FAILED;
+					System.out.println("buraaaa FAIL");
+				} else {
+					status = Status.OK;
+					System.out.println("buraaaa OKAY");
+				}
+			} else {
+				status = Status.OK;
+			}
+			// Liking Reviews
+			if(!statement.executeQuery(LIKING_REVIEWS_SQL).next()){
+				// Table missing, must create
+				statement.executeUpdate(CREATE_LIKING_REVIEWS_SQL);
+				// Check if create was successful
+				if (!statement.executeQuery(LIKING_REVIEWS_SQL).next()) {
 					status = Status.CREATE_FAILED;
 					System.out.println("buraaaa FAIL");
 				} else {
@@ -813,10 +847,32 @@ public class DatabaseHandler {
 				printWriter.println("<p>" + "Title : " + reviewResultSet.getString("review_title") + "</p>"); 
 				printWriter.println("<p>" + "Text : " + reviewResultSet.getString("review_text") + "</p>"); 
 				printWriter.println("<p>" + "Date : " + reviewResultSet.getString("date") + "</p>");
+				try(PreparedStatement statementCountLike = connection.prepareStatement(COUNT_LIKING_REVIEWS_SQL);){
+					statementCountLike.setString(1, hotelId);
+					statementCountLike.setString(2, reviewResultSet.getString("review_id"));
+					ResultSet countLikeResultSet = statementCountLike.executeQuery();
+					if (countLikeResultSet.next()){
+						printWriter.println("<p>" + countLikeResultSet.getInt(1) + " users found this Review helpful" + "</p>");
+					}
+				}					
 				if(username.equals(reviewResultSet.getString("username"))){	
-					modifyOrDeleteReview(printWriter, hotelId);
+					displayModifyOrDeleteReview(printWriter, hotelId);
 					count++; 
-				}
+				} else {
+					try(PreparedStatement statementUsersLike = connection.prepareStatement(COUNT_USER_LIKED_SQL);){
+						statementUsersLike.setString(1, hotelId);
+						statementUsersLike.setString(2, reviewResultSet.getString("review_id"));
+						statementUsersLike.setString(3, username);
+						ResultSet usersLikeResultSet = statementUsersLike.executeQuery();
+						if(usersLikeResultSet.next()){
+							if(usersLikeResultSet.getInt(1)==0){
+								displayLike(printWriter, hotelId, reviewResultSet.getString("review_id"), "Like");
+							} else {
+								displayLike(printWriter, hotelId, reviewResultSet.getString("review_id"), "Unlike");
+							}
+						}					
+					}					
+				}				
 				printWriter.println("<hr>"); 
 			}
 			if(count == 0 && (!clicked_button.equals("Modify"))) {
@@ -829,7 +885,7 @@ public class DatabaseHandler {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * 
 	 * @param req
@@ -867,7 +923,7 @@ public class DatabaseHandler {
 				printWriter.println("<p>" + "Title : " + reviewResultSet.getString("review_title") + "</p>"); 
 				printWriter.println("<p>" + "Text : " + reviewResultSet.getString("review_text") + "</p>"); 
 				if(username.equals(reviewResultSet.getString("username"))){	
-					modifyOrDeleteReview(printWriter, reviewResultSet.getString("hotel_id"));
+					displayModifyOrDeleteReview(printWriter, reviewResultSet.getString("hotel_id"));
 				}
 				printWriter.println("<p>" + "---------------------------------------------------------" + "</p>"); 
 			}			
@@ -1001,6 +1057,62 @@ public class DatabaseHandler {
 	
 	/**
 	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * 				
+	 * 			user's liked review information is uploaded to the liking_reviews table
+	 */
+	public void insertLikeReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
+		HttpSession session = req.getSession();
+		DatabaseConnector db = new DatabaseConnector("database.properties");
+		String hotelId = req.getParameter("hotelId");
+		String review_id = req.getParameter("review_id");
+		String username = (String) session.getAttribute("user");		
+		hotelId = StringEscapeUtils.escapeHtml4(hotelId);		
+		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(INSERT_LIKING_REVIEWS_SQL);){
+			statementReview.setString(1, hotelId);
+			statementReview.setString(2, review_id);
+			statementReview.setString(3, username);
+			statementReview.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
+	}
+	
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * 
+	 * 			user's liked review information is deleted from the liking_reviews table
+	 */
+	public void deleteLikeReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
+		HttpSession session = req.getSession();
+		DatabaseConnector db = new DatabaseConnector("database.properties");		
+		String hotelId = req.getParameter("hotelId");
+		String review_id = req.getParameter("review_id");
+		String username = (String) session.getAttribute("user");
+		hotelId = StringEscapeUtils.escapeHtml4(hotelId);		
+		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(DELETE_LIKING_REVIEWS_SQL);){
+			statementReview.setString(1, hotelId);
+			statementReview.setString(2, review_id);
+			statementReview.setString(3, username);
+			statementReview.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}			
+	}
+	
+	/**
+	 * 
 	 * @param printWriter
 	 * 			- PrintWriter
 	 * @param hotelId
@@ -1009,7 +1121,7 @@ public class DatabaseHandler {
 	 * 			Modify and Delete buttons are formed. And if one of them is clicked, 
 	 * 		with the hotel_id info, it is sent to the post method of reviewsservlet.
 	 */
-	private void modifyOrDeleteReview(PrintWriter printWriter, String hotelId) {
+	private void displayModifyOrDeleteReview(PrintWriter printWriter, String hotelId) {
 		printWriter.println("<form action=\"/reviews\" method=\"post\">");
 		printWriter.println("<p><input type=\"submit\" name=\"button\" value=\"Modify\"> &nbsp; &nbsp; &nbsp; &nbsp; <input type=\"submit\" name=\"button\" value=\"Delete\"> </p>");
 		printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + hotelId + "\" />");
@@ -1095,6 +1207,14 @@ public class DatabaseHandler {
 		printWriter.println("<p><input type=\"submit\" name=\"button\" value=\"Submit\"></p>");
 		printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + hotelId + "\" />");
 		printWriter.println("</form>");
+	}
+	
+	private void displayLike(PrintWriter printWriter, String hotelId, String review_id, String value) {
+		printWriter.println("<form action=\"/reviews\" method=\"post\">");
+		printWriter.println("<p><input type=\"submit\" name=\"button\" value=\"" + value + "\"></p>");
+		printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + hotelId + "\" />");
+		printWriter.println("<input type=\"hidden\" name=\"review_id\" value=\"" + review_id + "\" />");
+		printWriter.println("</form>");		
 	}
 	
 }

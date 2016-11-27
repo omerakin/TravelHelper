@@ -57,6 +57,12 @@ public class ReviewsServlet extends BaseServlet{
 			dbhandler.listReviewsInfo(req, resp, clicked_button);
 		} else if (clicked_button.equals("By rating (highly rated on top)")) {
 			dbhandler.listReviewsInfo(req, resp, clicked_button);
+		} else if (clicked_button.equals("Like")) {
+			dbhandler.insertLikeReview(req, resp);
+			dbhandler.listReviewsInfo(req, resp, clicked_button);
+		} else if (clicked_button.equals("Unlike")) {
+			dbhandler.deleteLikeReview(req, resp);
+			dbhandler.listReviewsInfo(req, resp, clicked_button);
 		}
 		endingResponse(resp);		
 	}
