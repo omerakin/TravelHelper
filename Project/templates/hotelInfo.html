@@ -1,0 +1,50 @@
+<DOCTYPE html>
+<html>
+<head>
+<title>$title</title>
+</head>
+<body>
+
+<form action="/logout" method="post">
+<p><input type="submit" value="Logout" style="float:right" ></p>
+</form>
+
+<form action="/myreviews" method="get">
+<p><input type="submit" value="View My Reviews" style="float:right; margin-right: 10px;" ></p>
+</form>
+
+<form action="/myhotels" method="get">
+<p><input type="submit" value="View My Saved Hotels" style="float:right; margin-right: 10px;" ></p>
+</form>
+
+<form action="/hotels" method="get">
+<p><input type="submit" value="View Hotels" style="float:right; margin-right: 10px;" ></p>
+</form>
+
+
+
+<img src="images/hotel_image.gif" />
+<p>Hotel Name :  $hotel_name</p>
+<p>Address : $hotel_street_address</p>
+<p>City : $hotel_city, $hotel_state</p>
+<p>Rating : $averageRating</p>
+<p>the link to expedia's page of this hotel </p>
+
+
+<form action="/reviews" method="get">
+<input type="hidden" name="hotelId" value="$hotel_id"/>
+<p><input type="submit" value="Reviews" style="float:left;"></p>
+</form>
+
+<form action="/touristattraction" method="get">
+<input type="hidden" name="hotelId" value="$hotel_id"/>
+<p><input type="submit" value="Tourist Attraction" style="float:left; margin-left: 25px;"></p>
+</form>
+
+<form action="/myhotels" method="post">
+<input type="hidden" name="hotelId" value="$hotel_id"/>
+<p> <input type="submit" name="button" value="$value" style="float:left; margin-left: 25px;"> </p>
+</form>
+
+</body>
+</html>

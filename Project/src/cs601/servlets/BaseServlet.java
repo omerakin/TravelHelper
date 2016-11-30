@@ -3,6 +3,7 @@ package cs601.servlets;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -125,6 +126,21 @@ public class BaseServlet extends HttpServlet {
 		} catch (IOException e) {
 			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}		
+	}
+	
+	/**
+	 * 
+	 * @param req
+	 * @param resp
+	 * @throws IOException
+	 */
+	protected void displayLastLogInTime(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		PrintWriter printWriter = resp.getWriter();
+		HttpSession session = req.getSession();
+		Timestamp lastLoginTime = (Timestamp) session.getAttribute("LastLoginTime");
+		if (lastLoginTime != null){
+			printWriter.println("<p style=\"font-size: 10pt; font-style: italic;\"> Last log in time : " + lastLoginTime.toString() + "</p>");
+		}				
 	}
 	
 	/**

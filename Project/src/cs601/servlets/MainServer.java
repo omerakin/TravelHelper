@@ -1,15 +1,10 @@
 package cs601.servlets;
 
-
-import java.nio.file.Paths;
-
+import org.apache.velocity.app.VelocityEngine;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-
-import cs601.hotelapp.HotelDataBuilder;
-import cs601.hotelapp.ThreadSafeHotelData;
 
 /**
  * Demonstrates how to use Jetty, servlets and JDBC for user registration. This is a
@@ -35,6 +30,12 @@ public class MainServer {
 		servletContextHandler.addServlet(MyReviewsServlet.class, "/myreviews");	
 		servletContextHandler.addServlet(MyHotelsServlet.class, "/myhotels");
 		servletContextHandler.addServlet(LogoutServlet.class, "/logout");
+		
+		// initialize velocity
+        VelocityEngine velocity = new VelocityEngine();
+		velocity.init();
+		
+		servletContextHandler.setAttribute("templateEngine", velocity);
 		
 		HandlerList handlers = new HandlerList();
 		handlers.setHandlers(new Handler[] {servletContextHandler});

@@ -22,9 +22,10 @@ public class HotelsServlet extends BaseServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		checkUserSession(req, resp);
-		prepareResponse("Hotels", resp);
-		displayLogOut(resp);
+		prepareResponse("Hotels", resp);		
+		displayLogOut(resp);		
 		searchHotels(resp);
+		displayLastLogInTime(req, resp);
 		dbhandler.listGeneralHotelsInfo(resp);
 		endingResponse(resp);	
 	}

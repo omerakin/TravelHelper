@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -19,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.velocity.VelocityContext;
 
 /**
  * Handles all database-related actions. Uses singleton design pattern. Modified
@@ -49,7 +51,8 @@ public class DatabaseHandler {
 	/** Used to create login_users table for this example. */
 	private static final String CREATE_SQL = "CREATE TABLE login_users ("
 			+ "userid INTEGER AUTO_INCREMENT PRIMARY KEY, " + "username VARCHAR(32) NOT NULL UNIQUE, "
-			+ "password CHAR(64) NOT NULL, " + "usersalt CHAR(32) NOT NULL);";
+			+ "password CHAR(64) NOT NULL, " + "usersalt CHAR(32) NOT NULL, "
+			+ "last_login_time TIMESTAMP NULL );";
 	
 	/** Used to create hotels table for this example. */
 	private static final String CREATE_HOTELS_SQL = "CREATE TABLE hotels ("
@@ -84,6 +87,12 @@ public class DatabaseHandler {
 	
 	/** Used to determine if a username and password exist. */
 	private static final String LOGIN_SQL = "SELECT username, password, usersalt FROM login_users WHERE username = ?";
+	
+	/** Used to update last_login_time in login_users. */
+	private static final String UPDATE_LOGIN_TIME_SQL = "UPDATE login_users SET last_login_time = ? WHERE username = ?";
+	
+	/** Used to get username's last login time. */
+	private static final String LAST_LOGIN_SQL = "SELECT last_login_time FROM login_users WHERE username = ?";
 	
 
 	// ------------------ constants below will be useful for the login operation
@@ -458,7 +467,7 @@ public class DatabaseHandler {
 					String databasepassword = results.getString("password");
 					//check the hashed results are equal
 					if(passhash.equals(databasepassword)){
-						status = Status.OK;
+						status = Status.OK;						
 					} else {
 						status = Status.WRONG_PASSWORD;
 						System.out.println("Wrong password is entered!");
@@ -476,6 +485,40 @@ public class DatabaseHandler {
 		}
 
 		return status;
+	}
+	
+	/**
+	 * 
+	 * @param user
+	 * 			- username
+	 * @param req
+	 * 			- HttpServletRequest
+	 * 			
+	 * 			Get and update Last Login time of user
+	 * @throws SQLException 
+	 */
+	public void getSetLastLoginTime(String user, HttpServletRequest req) {
+		//get the Last Login time
+		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(LAST_LOGIN_SQL);){
+			statementReview.setString(1, user);
+			ResultSet resultSet = statementReview.executeQuery();
+			if (resultSet.next()){
+				HttpSession session = req.getSession();
+				session.setAttribute("LastLoginTime", resultSet.getTimestamp(1));
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+		//update Last Login time
+		try (Connection connection = db.getConnection(); PreparedStatement statementUpdateLogIn = connection.prepareStatement(UPDATE_LOGIN_TIME_SQL);) {
+			statementUpdateLogIn.setTimestamp(1, new java.sql.Timestamp(System.currentTimeMillis()));
+			statementUpdateLogIn.setString(2, user);
+			statementUpdateLogIn .executeUpdate();			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	
 	}
 
 	/**
@@ -664,6 +707,54 @@ public class DatabaseHandler {
 				printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
 				printWriter.println("<p>" + "<input type=\"submit\" name=\"button\" value=\"" + value + "\" style=\"float:left; margin-left: 25px;\">" + "</p>");
 				printWriter.println("</form>");				
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}				
+	}	
+	
+	
+	public void listHotelInfoTemplateEngine(HttpServletRequest req, HttpServletResponse resp, VelocityContext context) throws FileNotFoundException, IOException {
+		HttpSession session = req.getSession();
+		PrintWriter printWriter = resp.getWriter();
+		DatabaseConnector db = new DatabaseConnector("database.properties");
+		String hotelId = req.getParameter("hotelId");
+		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
+		String username = (String) session.getAttribute("user");
+		String value = "";
+		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(HOTEL_HOTEL_SQL);) {
+			statement.setString(1, hotelId);
+			ResultSet results = statement.executeQuery();				
+			if (results.next()) {
+				double averageRating = 0;
+				int count = 0;
+				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+					statementReview.setString(1, results.getString("hotel_id"));
+					ResultSet reviewResultSet = statementReview.executeQuery();
+					while(reviewResultSet.next()){
+						String rating = reviewResultSet.getString("rating");
+						averageRating = averageRating + Double.parseDouble(rating);
+						count++;
+					}
+					if (count != 0) { averageRating = (averageRating / count); }  
+				}				
+				context.put("hotel_name", results.getString("hotel_name"));
+				context.put("hotel_street_address", results.getString("hotel_street_address"));
+				context.put("hotel_city", results.getString("hotel_city"));
+				context.put("hotel_state", results.getString("hotel_state"));
+				context.put("averageRating", averageRating);
+				context.put("hotel_id", results.getString("hotel_id"));				
+				try (PreparedStatement mySavedHotelstatement = connection.prepareStatement(MYHOTELS_SAVED_HOTELS_SQL_v2);) {
+					mySavedHotelstatement.setString(1, username);
+					mySavedHotelstatement.setString(2, results.getString("hotel_id"));
+					ResultSet mySavedHotelresults = mySavedHotelstatement.executeQuery();					
+					if (mySavedHotelresults.next()) {
+						value = "Unsave";
+					} else {
+						value = "Save";
+					}
+				}
+				context.put("value", value);			
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1209,6 +1300,13 @@ public class DatabaseHandler {
 		printWriter.println("</form>");
 	}
 	
+	/**
+	 * 
+	 * @param printWriter
+	 * @param hotelId
+	 * @param review_id
+	 * @param value
+	 */
 	private void displayLike(PrintWriter printWriter, String hotelId, String review_id, String value) {
 		printWriter.println("<form action=\"/reviews\" method=\"post\">");
 		printWriter.println("<p><input type=\"submit\" name=\"button\" value=\"" + value + "\"></p>");

@@ -58,6 +58,7 @@ public class LogInServlet extends BaseServlet{
 		if(status == Status.OK) { // registration was successful
 			HttpSession session = req.getSession();
 			session.setAttribute("user", user);
+			dbhandler.getSetLastLoginTime(user, req);
 			String url = "/hotels";
 			url = resp.encodeRedirectURL(url);
 			resp.sendRedirect(url);	
