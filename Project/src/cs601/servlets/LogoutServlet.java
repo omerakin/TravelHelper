@@ -17,7 +17,7 @@ public class LogoutServlet extends BaseServlet {
 	 * 	then redirects to the login page
 	 */
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		checkUserSession(req, resp);
 		req.getSession().removeAttribute("user");
 		req.getSession().invalidate();

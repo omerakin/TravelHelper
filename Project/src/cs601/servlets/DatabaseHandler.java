@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Random;
 import java.util.UUID;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
@@ -21,6 +22,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.velocity.VelocityContext;
+
+import cs601.hotelapp.Address;
+import cs601.hotelapp.Hotel;
 
 /**
  * Handles all database-related actions. Uses singleton design pattern. Modified
@@ -507,7 +511,6 @@ public class DatabaseHandler {
 				session.setAttribute("LastLoginTime", resultSet.getTimestamp(1));
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
 		//update Last Login time
@@ -516,7 +519,6 @@ public class DatabaseHandler {
 			statementUpdateLogIn.setString(2, user);
 			statementUpdateLogIn .executeUpdate();			
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	
 	}
@@ -564,7 +566,6 @@ public class DatabaseHandler {
 	 */
 	public void listGeneralHotelsInfo(HttpServletResponse resp) throws FileNotFoundException, IOException {
 		PrintWriter printWriter = resp.getWriter();
-		DatabaseConnector db = new DatabaseConnector("database.properties");
 		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(HOTELS_HOTELS_SQL);) {
 			ResultSet results = statement.executeQuery();				
 			while (results.next()) {
@@ -596,6 +597,41 @@ public class DatabaseHandler {
 	
 	/**
 	 * 
+	 * @param context
+	 * 			- VelocityContext
+	 *			
+	 *			Connect database and get all information about hotels such as hotel_name, 
+	 * 		hotel_street_address, hotel_city, hotel_state
+	 */
+	public void listGeneralHotelsInfoTemplateEngine(VelocityContext context) {
+		Vector<Hotelsinfodb> hotels = new Vector<>();
+		context.put("bodyheader", "Hotels");
+		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(HOTELS_HOTELS_SQL);) {
+			ResultSet results = statement.executeQuery();			
+			while (results.next()) {
+				double averageRating = 0;
+				int count = 0;
+				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+					statementReview.setString(1, results.getString("hotel_id"));
+					ResultSet reviewResultSet = statementReview.executeQuery();
+					while(reviewResultSet.next()){
+						String rating = reviewResultSet.getString("rating");
+						averageRating = averageRating + Double.parseDouble(rating);
+						count++;
+					}
+					if (count != 0) { averageRating = (averageRating / count); }  
+				}
+				Hotelsinfodb hotelsinfodb = new Hotelsinfodb(results.getString("hotel_id"), results.getString("hotel_name"), count, averageRating);
+				hotels.addElement(hotelsinfodb);
+			}
+			context.put("hotels", hotels);			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
+	}
+	
+	/**
+	 * 
 	 * @param req 
 	 * 			- HttpServletRequest
 	 * @param resp
@@ -608,7 +644,6 @@ public class DatabaseHandler {
 	 */
 	public void listSearchedHotelsInfo(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		PrintWriter printWriter = resp.getWriter();
-		DatabaseConnector db = new DatabaseConnector("database.properties");
 		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(HOTELS_HOTELS_SQL);) {
 			ResultSet results = statement.executeQuery();				
 			while (results.next()) {
@@ -639,8 +674,48 @@ public class DatabaseHandler {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}		
+	}
+	
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param context
+	 * 			- VelocityContext
+	 * 
+	 * 			Connect database and get searched hotel information such as hotel_name, 
+	 * 		hotel_street_address, hotel_city, hotel_state
+	 */
+	public void listSearchedHotelsInfoTemplateEngine(HttpServletRequest req, VelocityContext context) {
+		Vector<Hotelsinfodb> hotels = new Vector<>();
+		context.put("bodyheader", "Founded hotels");
+		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(HOTELS_HOTELS_SQL);) {
+			ResultSet results = statement.executeQuery();				
+			while (results.next()) {
+				String searchedHotel = req.getParameter("searchHotel").toLowerCase();
+				if(results.getString("hotel_name").toLowerCase().contains(searchedHotel) || 
+						searchedHotel.trim().equals("")){
+					double averageRating = 0;
+					int count = 0;
+					try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+						statementReview.setString(1, results.getString("hotel_id"));
+						ResultSet reviewResultSet = statementReview.executeQuery();
+						while(reviewResultSet.next()){
+							String rating = reviewResultSet.getString("rating");
+							averageRating = averageRating + Double.parseDouble(rating);
+							count++;
+						}
+						if (count != 0) { averageRating = (averageRating / count); }  
+					}
+					Hotelsinfodb hotelsinfodb = new Hotelsinfodb(results.getString("hotel_id"), results.getString("hotel_name"), count, averageRating);
+					hotels.addElement(hotelsinfodb);
+				}
+				context.put("hotels", hotels);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-		
 	}
 
 	/**
@@ -658,7 +733,6 @@ public class DatabaseHandler {
 	public void listHotelInfo(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
 		PrintWriter printWriter = resp.getWriter();
-		DatabaseConnector db = new DatabaseConnector("database.properties");
 		String hotelId = req.getParameter("hotelId");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
 		String username = (String) session.getAttribute("user");
@@ -716,8 +790,6 @@ public class DatabaseHandler {
 	
 	public void listHotelInfoTemplateEngine(HttpServletRequest req, HttpServletResponse resp, VelocityContext context) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
-		PrintWriter printWriter = resp.getWriter();
-		DatabaseConnector db = new DatabaseConnector("database.properties");
 		String hotelId = req.getParameter("hotelId");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
 		String username = (String) session.getAttribute("user");
@@ -743,7 +815,10 @@ public class DatabaseHandler {
 				context.put("hotel_city", results.getString("hotel_city"));
 				context.put("hotel_state", results.getString("hotel_state"));
 				context.put("averageRating", averageRating);
-				context.put("hotel_id", results.getString("hotel_id"));				
+				context.put("hotel_id", results.getString("hotel_id"));
+				context.put("expedia", "https://www.expedia.com/" + results.getString("hotel_city").replace(" ", "-") + "-" 
+							+ results.getString("hotel_name").replace(" ", "-") + ".h" + results.getString("hotel_id") 
+							+ ".Hotel-Information");
 				try (PreparedStatement mySavedHotelstatement = connection.prepareStatement(MYHOTELS_SAVED_HOTELS_SQL_v2);) {
 					mySavedHotelstatement.setString(1, username);
 					mySavedHotelstatement.setString(2, results.getString("hotel_id"));
@@ -775,7 +850,6 @@ public class DatabaseHandler {
 	public void listMySavedHotelsInfo(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
 		PrintWriter printWriter = resp.getWriter();
-		DatabaseConnector db = new DatabaseConnector("database.properties");
 		String hotelId = req.getParameter("hotelId");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
 		String username = (String) session.getAttribute("user");
@@ -816,6 +890,61 @@ public class DatabaseHandler {
 			e.printStackTrace();
 		}			
 	}
+
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param context
+	 * 			- VelocityContext
+	 * 
+	 * 			Connect database and get My Saved Hotels information such as hotel_name, 
+	 * 		hotel_street_address, hotel_city, hotel_state
+	 */
+	public void listMySavedHotelsInfoTemplateEngine(HttpServletRequest req, VelocityContext context) {
+		HttpSession session = req.getSession();
+		String hotelId = req.getParameter("hotelId");
+		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
+		String username = (String) session.getAttribute("user");
+		Vector<Hotelinfodb> mySavedHotels = new Vector<>();
+		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(MYHOTELS_SAVED_HOTELS_SQL_v1);) {
+			statement.setString(1, username);
+			ResultSet results = statement.executeQuery();				
+			while (results.next()) {
+				double averageRating = 0;
+				int count = 0;
+				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+					statementReview.setString(1, results.getString("hotel_id"));
+					ResultSet reviewResultSet = statementReview.executeQuery();
+					while(reviewResultSet.next()){
+						String rating = reviewResultSet.getString("rating");
+						averageRating = averageRating + Double.parseDouble(rating);
+						count++;
+					}
+					if (count != 0) { averageRating = (averageRating / count); }  
+				}
+				try(PreparedStatement statementHotel = connection.prepareStatement(HOTEL_HOTEL_SQL);){
+					statementHotel.setString(1, results.getString("hotel_id"));
+					ResultSet hotelResultSet = statementHotel.executeQuery();					
+					while(hotelResultSet.next()){
+						Hotelinfodb hotelinfodb = new Hotelinfodb(hotelResultSet.getString("hotel_name"), 
+								hotelResultSet.getString("hotel_street_address"), 
+								hotelResultSet.getString("hotel_city"), 
+								hotelResultSet.getString("hotel_state"), 
+								averageRating, 
+								"https://www.expedia.com/" + hotelResultSet.getString("hotel_city").replace(" ", "-") + "-" 
+										+ hotelResultSet.getString("hotel_name").replace(" ", "-") + ".h" + results.getString("hotel_id") 
+										+ ".Hotel-Information", 
+								results.getString("hotel_id"));
+						mySavedHotels.addElement(hotelinfodb);
+					}
+					context.put("mySavedHotels", mySavedHotels);
+				}				
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}	
+	}
 	
 	/**
 	 * 
@@ -830,7 +959,6 @@ public class DatabaseHandler {
 	 */
 	public void insertHotel(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
-		DatabaseConnector db = new DatabaseConnector("database.properties");
 		String hotelId = req.getParameter("hotelId");
 		String username = (String) session.getAttribute("user");		
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);		
@@ -855,8 +983,7 @@ public class DatabaseHandler {
 	 * 			user's saved hotel information is deleted from the saved_hotels table
 	 */
 	public void deleteHotel(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
-		HttpSession session = req.getSession();
-		DatabaseConnector db = new DatabaseConnector("database.properties");		
+		HttpSession session = req.getSession();		
 		String hotelId = req.getParameter("hotelId");
 		String username = (String) session.getAttribute("user");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);		
@@ -876,7 +1003,6 @@ public class DatabaseHandler {
 	 * 		- Connect database and returns String, which is a partial query containing location information for this hotel
 	 */
 	public String generateQueries(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
-		DatabaseConnector db = new DatabaseConnector("database.properties");
 		String hotelId = req.getParameter("hotelId");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
 		String query = "";
@@ -917,7 +1043,6 @@ public class DatabaseHandler {
 	public void listReviewsInfo(HttpServletRequest req, HttpServletResponse resp, String clicked_button) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
 		PrintWriter printWriter = resp.getWriter();
-		DatabaseConnector db = new DatabaseConnector("database.properties");
 		String hotelId = req.getParameter("hotelId");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
 		String username = (String) session.getAttribute("user");
@@ -995,7 +1120,6 @@ public class DatabaseHandler {
 	public void listMyReviewsInfo(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
 		PrintWriter printWriter = resp.getWriter();
-		DatabaseConnector db = new DatabaseConnector("database.properties");
 		String username = (String) session.getAttribute("user");
 		String hotelName = "";
 		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(MYREVIEWS_SQL);){
@@ -1026,6 +1150,48 @@ public class DatabaseHandler {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param context
+	 * 			- VelocityContext
+	 * 
+	 * 			Connect database and get all review information that user submitted such as hotel_name,
+	 * 		rating, review_title, review_text.
+	 */
+	public void listMyReviewsInfoTemplateEngine(HttpServletRequest req, VelocityContext context) {
+		HttpSession session = req.getSession();
+		String username = (String) session.getAttribute("user");
+		String hotelName = "";
+		Vector<Reviewsinfodb> reviews = new Vector<>();
+		context.put("username", username);
+		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(MYREVIEWS_SQL);){
+			statementReview.setString(1, username);
+			ResultSet reviewResultSet = statementReview.executeQuery();	
+			while(reviewResultSet.next()){
+				try(PreparedStatement statementHotel = connection.prepareStatement(MYREVIEWS_HOTELS_SQL);){
+					statementHotel.setString(1, reviewResultSet.getString("hotel_id"));
+					ResultSet hotelResultSet = statementHotel.executeQuery();
+					if(hotelResultSet.next()){
+						hotelName = hotelResultSet.getString("hotel_name");
+					}
+				}
+				Reviewsinfodb reviewsinfodb = new Reviewsinfodb(hotelName,
+											reviewResultSet.getString("rating"), 
+											reviewResultSet.getString("review_title"), 
+											reviewResultSet.getString("review_text"), 
+											reviewResultSet.getString("username"), 
+											reviewResultSet.getString("hotel_id"));
+				reviews.addElement(reviewsinfodb);
+			}
+			context.put("reviews", reviews);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
 
 	/**
 	 * 
@@ -1040,7 +1206,6 @@ public class DatabaseHandler {
 	 */
 	public void insertReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
-		DatabaseConnector db = new DatabaseConnector("database.properties");
 		
 		String hotelId = req.getParameter("hotelId");
 		String username = (String) session.getAttribute("user");
@@ -1081,9 +1246,7 @@ public class DatabaseHandler {
 	 * 			user's review information is deleted from the reviews table
 	 */
 	public void deleteReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
-		HttpSession session = req.getSession();
-		DatabaseConnector db = new DatabaseConnector("database.properties");
-		
+		HttpSession session = req.getSession();		
 		String hotelId = req.getParameter("hotelId");
 		String username = (String) session.getAttribute("user");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
@@ -1111,9 +1274,7 @@ public class DatabaseHandler {
 	 */
 	public void modifyReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
-		DatabaseConnector db = new DatabaseConnector("database.properties");
-		PrintWriter printWriter = resp.getWriter();
-		
+		PrintWriter printWriter = resp.getWriter();		
 		String review_title = null;
 		String review_text = null;
 		String rating = null;
@@ -1159,7 +1320,6 @@ public class DatabaseHandler {
 	 */
 	public void insertLikeReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
-		DatabaseConnector db = new DatabaseConnector("database.properties");
 		String hotelId = req.getParameter("hotelId");
 		String review_id = req.getParameter("review_id");
 		String username = (String) session.getAttribute("user");		
@@ -1186,8 +1346,7 @@ public class DatabaseHandler {
 	 * 			user's liked review information is deleted from the liking_reviews table
 	 */
 	public void deleteLikeReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
-		HttpSession session = req.getSession();
-		DatabaseConnector db = new DatabaseConnector("database.properties");		
+		HttpSession session = req.getSession();	
 		String hotelId = req.getParameter("hotelId");
 		String review_id = req.getParameter("review_id");
 		String username = (String) session.getAttribute("user");
@@ -1314,5 +1473,6 @@ public class DatabaseHandler {
 		printWriter.println("<input type=\"hidden\" name=\"review_id\" value=\"" + review_id + "\" />");
 		printWriter.println("</form>");		
 	}
+
 	
 }

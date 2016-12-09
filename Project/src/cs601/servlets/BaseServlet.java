@@ -3,6 +3,7 @@ package cs601.servlets;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -16,6 +17,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 
 /**
  * Provides base functionality to all servlets in this example. Original author:
@@ -50,6 +54,63 @@ public class BaseServlet extends HttpServlet {
 			return;
 		}
 	}
+	
+	/**
+	 * 
+	 * @param response
+	 * 			- HttpServletResponse
+	 * 
+	 * 			HTML
+	 */
+	protected void prepareResponseHtml(HttpServletResponse resp) {		
+		resp.setContentType("text/html");
+		resp.setStatus(HttpServletResponse.SC_OK);
+	}
+	
+	/**
+	 * 
+	 * @param title
+	 * 			- Head of page
+	 * @return 
+	 */
+	protected VelocityContext getContext(String title) {		
+		VelocityContext context = new VelocityContext();
+		context.put("title", title);
+		return context;
+	}
+	
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param htmlFileName
+	 * 			- HTML File Name
+	 * @return - template
+	 */
+	protected Template getTemplate(HttpServletRequest req, String htmlFileName) {		
+		VelocityEngine ve = (VelocityEngine)req.getServletContext().getAttribute("templateEngine");		
+		Template template = ve.getTemplate("templates/" + htmlFileName);
+		return template;
+	}
+	
+	/**
+	 * 
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @param template
+	 * 			- Template
+	 * @param context
+	 * 			- VelocityContext
+	 * @throws IOException
+	 */
+	protected void mergeAndPrintResponse(HttpServletResponse resp, Template template, VelocityContext context) throws IOException {		
+		StringWriter writer = new StringWriter();
+		template.merge(context, writer);
+		resp.getWriter().println(writer.toString());
+	}
+	
+	
+	
 
 	/**
 	 * 
@@ -109,7 +170,7 @@ public class BaseServlet extends HttpServlet {
 	protected void displayLogOut(HttpServletResponse resp) {
 		try {
 			PrintWriter printWriter = resp.getWriter();
-			printWriter.println("<form action=\"/logout\" method=\"post\">");
+			printWriter.println("<form action=\"/logout\" method=\"get\">");
 			printWriter.println("<p><input type=\"submit\" value=\"Logout\" style=\"float:right\" ></p>");
 			printWriter.println("</form>");						
 			printWriter.println("<form action=\"/myreviews\" method=\"get\">");
@@ -131,15 +192,15 @@ public class BaseServlet extends HttpServlet {
 	/**
 	 * 
 	 * @param req
-	 * @param resp
-	 * @throws IOException
+	 * 			- HttpServletRequest
+	 * @param context
+	 * 			- VelocityContext
 	 */
-	protected void displayLastLogInTime(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		PrintWriter printWriter = resp.getWriter();
+	protected void displayLastLogInTime(HttpServletRequest req, VelocityContext context) {
 		HttpSession session = req.getSession();
 		Timestamp lastLoginTime = (Timestamp) session.getAttribute("LastLoginTime");
 		if (lastLoginTime != null){
-			printWriter.println("<p style=\"font-size: 10pt; font-style: italic;\"> Last log in time : " + lastLoginTime.toString() + "</p>");
+			context.put("lastLoginTime", "Last log in time : " + lastLoginTime.toString());
 		}				
 	}
 	

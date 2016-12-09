@@ -5,6 +5,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+
 /**
  * 
  * @author akin_
@@ -22,11 +25,21 @@ public class MyReviewsServlet extends BaseServlet {
 	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		/*
 		checkUserSession(req, resp);
 		prepareResponse("My Reviews", resp);
 		displayLogOut(resp);
 		dbhandler.listMyReviewsInfo(req, resp);
 		endingResponse(resp);
+		*/
+		
+		checkUserSession(req, resp);
+		prepareResponseHtml(resp);
+		VelocityContext context = getContext("My Reviews");
+		Template template = getTemplate(req, "MyReviewsInfo.html");
+		dbhandler.listMyReviewsInfoTemplateEngine(req, context);
+		mergeAndPrintResponse(resp, template, context);
+		
 	}
 
 }

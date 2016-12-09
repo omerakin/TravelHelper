@@ -1,12 +1,17 @@
 package cs601.servlets;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 
 /**
  * 
@@ -24,7 +29,7 @@ public class LogInServlet extends BaseServlet{
 	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		
+		/*
 		checkUserLoggedIn(req, resp);
 		prepareResponse("Login", resp);
 		PrintWriter printWriter = resp.getWriter(); 
@@ -37,6 +42,20 @@ public class LogInServlet extends BaseServlet{
 		displayLogInForm(printWriter);
 		displayRegister(printWriter);
 		finishResponse(resp);
+		*/
+		
+		checkUserLoggedIn(req, resp);
+		prepareResponseHtml(resp);
+		VelocityContext context = getContext("Login");
+		Template template = getTemplate(req,"LoginInfo.html");			
+		// error will not be null if we were forwarded her from the post method where something went wrong
+		String error = req.getParameter("error");
+		context.put("errorMessage", "");
+		if(error != null) {
+			String errorMessage = getStatusMessage(error);
+			context.put("errorMessage", errorMessage);
+		}		
+		mergeAndPrintResponse(resp, template, context);		
 	}
 
 	/**

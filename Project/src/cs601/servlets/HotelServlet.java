@@ -36,25 +36,13 @@ public class HotelServlet extends BaseServlet {
 		displayLogOut(resp);
 		dbhandler.listHotelInfo(req, resp);
 		endingResponse(resp);
-		*/
-		
+		*/		
 		
 		checkUserSession(req, resp);
-		
-		resp.setContentType("text/html");
-		resp.setStatus(HttpServletResponse.SC_OK);
-		PrintWriter out = resp.getWriter();
-		
-		VelocityEngine ve = (VelocityEngine)req.getServletContext().getAttribute("templateEngine");
-		VelocityContext context = new VelocityContext();
-		Template template = ve.getTemplate("templates/hotelInfo.html");
-		context.put("title", "Hotel");
-		
-		dbhandler.listHotelInfoTemplateEngine(req, resp, context);	
-		
-		StringWriter writer = new StringWriter();
-		template.merge(context, writer);
-
-		out.println(writer.toString());		
+		prepareResponseHtml(resp);
+		VelocityContext context = getContext("Hotel");
+		Template template = getTemplate(req, "HotelInfo.html");		
+		dbhandler.listHotelInfoTemplateEngine(req, resp, context);
+		mergeAndPrintResponse(resp, template, context);
 	}
 }

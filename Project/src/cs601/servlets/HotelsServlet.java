@@ -1,8 +1,14 @@
 package cs601.servlets;
 import java.io.IOException;
+import java.io.StringWriter;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 
 /**
  * 
@@ -21,13 +27,24 @@ public class HotelsServlet extends BaseServlet {
 	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		/*
 		checkUserSession(req, resp);
 		prepareResponse("Hotels", resp);		
 		displayLogOut(resp);		
 		searchHotels(resp);
 		displayLastLogInTime(req, resp);
 		dbhandler.listGeneralHotelsInfo(resp);
-		endingResponse(resp);	
+		endingResponse(resp);
+		*/
+		
+		checkUserSession(req, resp);
+		prepareResponseHtml(resp);
+		VelocityContext context = getContext("Hotels");
+		Template template = getTemplate(req, "HotelsInfo.html");
+		displayLastLogInTime(req, context);
+		dbhandler.listGeneralHotelsInfoTemplateEngine(context);
+		mergeAndPrintResponse(resp, template, context);
+		
 	}
 
 	/**
@@ -36,12 +53,22 @@ public class HotelsServlet extends BaseServlet {
 	 */
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		/*
 		checkUserSession(req, resp);
 		prepareResponse("Hotels", resp);
 		displayLogOut(resp);
 		searchHotels(resp);
 		dbhandler.listSearchedHotelsInfo(req, resp);
 		endingResponse(resp);
+		*/
+		
+		checkUserSession(req, resp);
+		prepareResponseHtml(resp);
+		VelocityContext context = getContext("Hotels");
+		Template template = getTemplate(req, "HotelsInfo.html");
+		context.put("lastLoginTime", "");
+		dbhandler.listSearchedHotelsInfoTemplateEngine(req, context);
+		mergeAndPrintResponse(resp, template, context);		
 	}
 	
 	
