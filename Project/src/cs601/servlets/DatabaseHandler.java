@@ -1101,6 +1101,75 @@ public class DatabaseHandler {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param context
+	 * 			- VelocityContext
+	 * @param clicked_button
+	 * 			- which button is clicked checks
+	 * 
+	 * 			Connect database and get all review information for specific hotel such as username, 
+	 * 		rating, review_title, review_text
+	 * 			Compare username with user's username, if they are equal, 
+	 * 		it allows user to edit his/her own review such as modify or delete 
+	 */
+	public void listReviewsInfoTemplateEngine(HttpServletRequest req, VelocityContext context, String clicked_button) {
+		Vector<Reviewsinfodb> reviews = new Vector<>();
+		HttpSession session = req.getSession();
+		String hotelId = req.getParameter("hotelId");
+		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
+		String username = (String) session.getAttribute("user");
+		String sortBy = "";		
+		context.put("hotelId", hotelId);
+		context.put("username", username);
+		context.put("clicked_button", clicked_button);
+		if(clicked_button.equals("By date (most recent ones on top)")) {
+			sortBy = " ORDER BY date DESC";
+		} else if(clicked_button.equals("By rating (highly rated on top)")) {
+			sortBy = " ORDER BY rating DESC";
+		}		
+		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(REVIEWS_SQL_v1 + sortBy);){
+			statementReview.setString(1, hotelId);
+			ResultSet reviewResultSet = statementReview.executeQuery();
+			while(reviewResultSet.next()){
+				Reviewsinfodb reviewsinfodb = new Reviewsinfodb(reviewResultSet.getString("username"), 
+																reviewResultSet.getString("rating"), 
+																reviewResultSet.getString("review_title"), 
+																reviewResultSet.getString("review_text"), 
+																reviewResultSet.getString("date"),
+																reviewResultSet.getString("review_id"),
+																0,
+																0);
+				try(PreparedStatement statementCountLike = connection.prepareStatement(COUNT_LIKING_REVIEWS_SQL);){
+					statementCountLike.setString(1, hotelId);
+					statementCountLike.setString(2, reviewResultSet.getString("review_id"));
+					ResultSet countLikeResultSet = statementCountLike.executeQuery();
+					if (countLikeResultSet.next()){
+						reviewsinfodb.setCountLike(countLikeResultSet.getInt(1));
+					}
+				}
+				if(!username.equals(reviewResultSet.getString("username"))){
+					try(PreparedStatement statementUsersLike = connection.prepareStatement(COUNT_USER_LIKED_SQL);){
+						statementUsersLike.setString(1, hotelId);
+						statementUsersLike.setString(2, reviewResultSet.getString("review_id"));
+						statementUsersLike.setString(3, username);
+						ResultSet usersLikeResultSet = statementUsersLike.executeQuery();
+						if(usersLikeResultSet.next()){
+							reviewsinfodb.setUsersLike(usersLikeResultSet.getInt(1));
+						}					
+					}
+				}
+				reviews.addElement(reviewsinfodb);
+			}
+			context.put("reviews", reviews);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	}
 
 	/**
 	 * 
@@ -1164,7 +1233,7 @@ public class DatabaseHandler {
 		HttpSession session = req.getSession();
 		String username = (String) session.getAttribute("user");
 		String hotelName = "";
-		Vector<Reviewsinfodb> reviews = new Vector<>();
+		Vector<Myreviewsinfodb> reviews = new Vector<>();
 		context.put("username", username);
 		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(MYREVIEWS_SQL);){
 			statementReview.setString(1, username);
@@ -1177,7 +1246,7 @@ public class DatabaseHandler {
 						hotelName = hotelResultSet.getString("hotel_name");
 					}
 				}
-				Reviewsinfodb reviewsinfodb = new Reviewsinfodb(hotelName,
+				Myreviewsinfodb reviewsinfodb = new Myreviewsinfodb(hotelName,
 											reviewResultSet.getString("rating"), 
 											reviewResultSet.getString("review_title"), 
 											reviewResultSet.getString("review_text"), 
@@ -1197,14 +1266,12 @@ public class DatabaseHandler {
 	 * 
 	 * @param req
 	 * 			- HttpServletRequest
-	 * @param resp
-	 * 			- HttpServletResponse
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * 				
 	 * 			user's review information is uploaded to the reviews table
 	 */
-	public void insertReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
+	public void insertReview(HttpServletRequest req) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
 		
 		String hotelId = req.getParameter("hotelId");
@@ -1238,14 +1305,12 @@ public class DatabaseHandler {
 	 * 
 	 * @param req
 	 * 			- HttpServletRequest
-	 * @param resp
-	 * 			- HttpServletResponse
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * 
 	 * 			user's review information is deleted from the reviews table
 	 */
-	public void deleteReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
+	public void deleteReview(HttpServletRequest req) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();		
 		String hotelId = req.getParameter("hotelId");
 		String username = (String) session.getAttribute("user");
@@ -1265,16 +1330,15 @@ public class DatabaseHandler {
 	 * 
 	 * @param req
 	 * 			- HttpServletRequest
-	 * @param resp
+	 * @param context
 	 * 			- HttpServletResponse
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * 
 	 * 			user's review information is modified and again uploaded to the reviews table
 	 */
-	public void modifyReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
-		HttpSession session = req.getSession();
-		PrintWriter printWriter = resp.getWriter();		
+	public void modifyReview(HttpServletRequest req, VelocityContext context) throws FileNotFoundException, IOException {
+		HttpSession session = req.getSession();	
 		String review_title = null;
 		String review_text = null;
 		String rating = null;
@@ -1299,9 +1363,12 @@ public class DatabaseHandler {
 				deleteReview.executeUpdate();
 			}
 			//list Reviews without users review
-			listReviewsInfo(req, resp, "Modify");
+			listReviewsInfoTemplateEngine(req, context, "Modify");
 			//prepare the new review
-			prepareReview(printWriter, hotelId, review_title, review_text, rating);			
+			context.put("modify_review_title", review_title);
+			context.put("modify_review_text", review_text);
+			context.put("modify_rating", rating.trim());
+			context.put("modify_hotelId", hotelId);			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}		
@@ -1311,14 +1378,12 @@ public class DatabaseHandler {
 	 * 
 	 * @param req
 	 * 			- HttpServletRequest
-	 * @param resp
-	 * 			- HttpServletResponse
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * 				
 	 * 			user's liked review information is uploaded to the liking_reviews table
 	 */
-	public void insertLikeReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
+	public void insertLikeReview(HttpServletRequest req) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
 		String hotelId = req.getParameter("hotelId");
 		String review_id = req.getParameter("review_id");
@@ -1338,14 +1403,12 @@ public class DatabaseHandler {
 	 * 
 	 * @param req
 	 * 			- HttpServletRequest
-	 * @param resp
-	 * 			- HttpServletResponse
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * 
 	 * 			user's liked review information is deleted from the liking_reviews table
 	 */
-	public void deleteLikeReview(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
+	public void deleteLikeReview(HttpServletRequest req) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();	
 		String hotelId = req.getParameter("hotelId");
 		String review_id = req.getParameter("review_id");
@@ -1473,6 +1536,7 @@ public class DatabaseHandler {
 		printWriter.println("<input type=\"hidden\" name=\"review_id\" value=\"" + review_id + "\" />");
 		printWriter.println("</form>");		
 	}
+
 
 	
 }
