@@ -55,13 +55,14 @@
   </div>
 </nav>
 <div class="jumbotron">
-  <div class="container-fluid">
-  	<p style="font-size: 10pt; font-style: italic;">$lastLoginTime</p>
+  <div class="container-fluid" style="margin-top: -40px;">
+  	<p style="font-size: 10pt; font-style: italic; float:right;">$lastLoginTime</p>
     <h1>$bodyheader</h1>
+    <hr style="width: 100%; color: black; height: 1px; background-color:black;">
     #foreach( $hotelsinfodb in $hotels)
     	<form action="/hotel" method="get">
     	<input type="hidden" name="hotelId" value="$hotelsinfodb.Hotel_id" />
-    	<p> Hotel Name : <input type="submit" value="$hotelsinfodb.Hotel_name" style="background-color: Transparent; cursor:pointer; overflow: hidden; color: blue; border: none; text-decoration: underline;"> </p>
+    	<p> Hotel Name :<input class="btn btn-link" type="submit" value="$hotelsinfodb.Hotel_name" style="font-size:20px"> </p>
  		</form>
  		<p> Total Reviews : $hotelsinfodb.Total_count</p>
  		<p> Rating : $hotelsinfodb.Average_rating</p>

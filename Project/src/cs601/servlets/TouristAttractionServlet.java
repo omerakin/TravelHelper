@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.UnknownHostException;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -30,17 +33,27 @@ public class TouristAttractionServlet extends BaseServlet {
 		
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		/*
 		checkUserSession(req, resp);
 		prepareResponse("Tourist Attraction", resp);
 		displayLogOut(resp);
 		listAttractionsInfo(req, resp);
-		endingResponse(resp);	
+		endingResponse(resp);
+		*/
+		
+		checkUserSession(req, resp);
+		prepareResponseHtml(resp);
+		VelocityContext context = getContext("Tourist Attraction");
+		Template template = getTemplate(req, "TouristAttractionInfo.html");
+		listAttractionsInfo(req, context);
+		mergeAndPrintResponse(resp, template, context);		
 	}
 	
 	/**
 	 * 
 	 * @param req 
 	 * 			- HttpServletRequest
+	 * @param context 
 	 * @param resp
 	 * 			- HttpServletResponse
 	 * @throws FileNotFoundException
@@ -49,12 +62,12 @@ public class TouristAttractionServlet extends BaseServlet {
 	 * 			Get Tourist Attraction information for hotel such as Attraction name, 
 	 * 			address, rate
 	 */
-	private void listAttractionsInfo(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
+	private void listAttractionsInfo(HttpServletRequest req, VelocityContext context) throws FileNotFoundException, IOException {
+		Vector<TouristAttractionInfodb> touristAttraction = new Vector<>();
 		SSLSocketFactory sslSocketFactory = null;
 		SSLSocket sslSocket = null;
 		BufferedReader bufferedReader = null;
-		PrintWriter printWriter = null;
-		PrintWriter servletPrintWriter = resp.getWriter();		
+		PrintWriter printWriter = null;		
 		String host = "maps.googleapis.com";
 		String request = "";
 		String jsonObjectString = "";
@@ -62,7 +75,7 @@ public class TouristAttractionServlet extends BaseServlet {
 		
 		String hotelId = req.getParameter("hotelId");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);		
-		String query = dbhandler.generateQueries(req,resp);
+		String query = dbhandler.generateQueries(req);
 		sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
 		try {
 			// HTTPS uses port 443
@@ -107,11 +120,10 @@ public class TouristAttractionServlet extends BaseServlet {
 					if(jsonObjectAttraction.get("rating") != null){
 						rating = ((Number)jsonObjectAttraction.get("rating")).doubleValue();
 					}
-					servletPrintWriter.println("<p>" +  "Name : " + name + "</p>");
-					servletPrintWriter.println("<p>" + "Address : " + address + "</p>");
-					servletPrintWriter.println("<p>" + "Rating : " + rating + "</p>");
-					servletPrintWriter.println("<hr>");
+					TouristAttractionInfodb touristAttractionInfodb = new TouristAttractionInfodb(name, address, rating);
+					touristAttraction.addElement(touristAttractionInfodb);
 				}
+				context.put("touristAttraction", touristAttraction);
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}			

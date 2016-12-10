@@ -11,7 +11,7 @@
     .navbar {
       margin-bottom: 0;
       border-radius: 0;
-    }    
+    }
   </style>
 </head>
 <body>
@@ -30,7 +30,7 @@
       <ul class="nav navbar-nav">
         <li><a href="/hotels">Hotels</a></li>
         <li><a href="/myhotels">My Saved Hotels</a></li>
-        <li class="active"><a href="/myreviews">My Reviews</a></li>
+        <li><a href="/myreviews">My Reviews</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li><a href="/logout"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
@@ -40,21 +40,12 @@
 </nav>
 <div class="jumbotron">
   <div class="container-fluid">
-    #foreach( $reviewsinfodb in $reviews)
-    	<p> Hotel Name : $reviewsinfodb.HotelName</p>
-    	<p> Rating : $reviewsinfodb.Rating</p>
-    	<p> Title : $reviewsinfodb.Review_title</p>
-    	<p> Text : $reviewsinfodb.Review_text</p>
-    	#if ($username == $reviewsinfodb.Username)
-    		<form action="/reviews" method="post">
-    		<p><input class="btn btn-warning" type="submit" name="button" value="Modify"> 
-    		&nbsp; &nbsp; &nbsp; &nbsp; 
-    		<input class="btn btn-danger" type="submit" name="button" value="Delete"></p>
-    		<input type="hidden" name="hotelId" value=" $reviewsinfodb.Hotel_id"/>
-    		</form>
-    	#end    	
- 		<hr>        
-	#end    
+    #foreach( $touristAttractionInfodb in $touristAttraction)
+    	<p> Name : $touristAttractionInfodb.Name</p>
+    	<p> Address : $touristAttractionInfodb.Address</p> 
+    	<p> Rating : $touristAttractionInfodb.rating</p>
+    	<hr style="width: 100%; color: black; height: 1px; background-color:black;">     
+	#end
   </div>
 </div><br>
 

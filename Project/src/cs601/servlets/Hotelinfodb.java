@@ -14,6 +14,7 @@ public class Hotelinfodb {
 		this.hotel_name = hotel_name;
 		this.hotel_street_address = hotel_street_address;
 		this.hotel_city = hotel_city;
+		this.hotel_state = hotel_state;
 		this.averageRating = averageRating;
 		this.expedia = expedia;
 		this.hotel_id = hotel_id;		

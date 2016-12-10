@@ -1002,7 +1002,7 @@ public class DatabaseHandler {
 	 * @return
 	 * 		- Connect database and returns String, which is a partial query containing location information for this hotel
 	 */
-	public String generateQueries(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
+	public String generateQueries(HttpServletRequest req) throws FileNotFoundException, IOException {
 		String hotelId = req.getParameter("hotelId");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
 		String query = "";
@@ -1151,7 +1151,7 @@ public class DatabaseHandler {
 						reviewsinfodb.setCountLike(countLikeResultSet.getInt(1));
 					}
 				}
-				if(!username.equals(reviewResultSet.getString("username"))){
+				if((username != null) && (!username.equals(reviewResultSet.getString("username")))){
 					try(PreparedStatement statementUsersLike = connection.prepareStatement(COUNT_USER_LIKED_SQL);){
 						statementUsersLike.setString(1, hotelId);
 						statementUsersLike.setString(2, reviewResultSet.getString("review_id"));

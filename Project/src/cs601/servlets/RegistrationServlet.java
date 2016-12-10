@@ -6,6 +6,8 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
 
 /** 
  * A servlet that handles user registration. doGet() method displays an HTML form with a button and
@@ -27,6 +29,7 @@ public class RegistrationServlet extends BaseServlet {
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
 
+		
 		prepareResponse("Register New User", response);
 		PrintWriter out = response.getWriter(); 
 		// error will not be null if we were forwarded her from the post method where something went wrong
@@ -38,6 +41,20 @@ public class RegistrationServlet extends BaseServlet {
 
 		displayForm(out); 
 		finishResponse(response);
+		
+		/*
+		prepareResponseHtml(response);
+		VelocityContext context = getContext("Register New User");
+		Template template = getTemplate(request,"RegisterInfo.html");
+		// error will not be null if we were forwarded her from the post method where something went wrong
+		String error = request.getParameter("error");
+		context.put("errorMessage", "");
+		if(error != null) {
+			String errorMessage = getStatusMessage(error);
+			context.put("errorMessage", errorMessage);
+		}
+		mergeAndPrintResponse(response, template, context);
+		*/
 	}
 
 	/**
