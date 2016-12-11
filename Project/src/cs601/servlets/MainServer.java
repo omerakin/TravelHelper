@@ -29,6 +29,7 @@ public class MainServer {
 		servletContextHandler.addServlet(TouristAttractionServlet.class, "/touristattraction");
 		servletContextHandler.addServlet(MyReviewsServlet.class, "/myreviews");	
 		servletContextHandler.addServlet(MyHotelsServlet.class, "/myhotels");
+		servletContextHandler.addServlet(MyExpediasServlet.class, "/myexpedia");
 		servletContextHandler.addServlet(LogoutServlet.class, "/logout");
 		
 		// initialize velocity

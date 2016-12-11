@@ -31,7 +31,7 @@
         <li><a href="/hotels">Hotels</a></li>
         <li><a href="/myhotels">My Saved Hotels</a></li>
         <li><a href="/myreviews">My Reviews</a></li>
-        <li><a href="/myexpedia">Expedia History</a></li>
+        <li class="active"><a href="/myexpedia">Expedia History</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li><a href="/logout"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
@@ -41,11 +41,13 @@
 </nav>
 <div class="jumbotron">
   <div class="container-fluid">
-    #foreach( $touristAttractionInfodb in $touristAttraction)
-    	<p> Name : $touristAttractionInfodb.Name</p>
-    	<p> Address : $touristAttractionInfodb.Address</p> 
-    	<p> Rating : $touristAttractionInfodb.rating</p>
-    	<hr style="width: 100%; color: black; height: 1px; background-color:black;">     
+    #foreach( $expediaHistory in $myExpediaHistory)
+    	<p><a href="$expediaHistory.Expedia" target="_blank">$expediaHistory.Expedia</a></p>
+    	<form action="/myexpedia" method="post">
+    	<input type="hidden" name="hotelId" value="$expediaHistory.Hotel_id"/>
+    	<p><input class="btn btn-danger" type="submit" name="button" value="Delete"></p>
+    	</form>
+ 		<hr>        
 	#end
   </div>
 </div><br>

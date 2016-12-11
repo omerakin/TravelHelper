@@ -34,9 +34,10 @@
     </div>
     <div class="collapse navbar-collapse" id="myNavbar">
       <ul class="nav navbar-nav">
-        <li class="active"><a href="/hotels">Hotels</a></li>
+        <li><a href="/hotels">Hotels</a></li>
         <li><a href="/myhotels">My Saved Hotels</a></li>
         <li><a href="/myreviews">My Reviews</a></li>
+        <li><a href="/myexpedia">Expedia History</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li><a href="/logout"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
@@ -75,13 +76,13 @@
     	#else
     		#if ($reviewsinfodb.UsersLike == 0)
     			<form action="/reviews" method="post">
-    			<p><input class="btn btn-primary" type="submit" name="button" value="Like"></p>
+    			<p><span class="glyphicon glyphicon-thumbs-up"></span> <input class="btn btn-primary" type="submit" name="button" value="Like"></p>
     			<input type="hidden" name="hotelId" value="$hotelId" />
     			<input type="hidden" name="review_id" value="$reviewsinfodb.Review_id" />
     			</form>
     		#else
     			<form action="/reviews" method="post">
-    			<p><input class="btn btn-danger" type="submit" name="button" value="Unlike"></p>
+    			<p><span class="glyphicon glyphicon-thumbs-down"></span> <input class="btn btn-danger" type="submit" name="button" value="Unlike"></p>
     			<input type="hidden" name="hotelId" value="$hotelId" />
     			<input type="hidden" name="review_id" value="$reviewsinfodb.Review_id" />
     			</form>

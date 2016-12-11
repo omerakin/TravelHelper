@@ -199,6 +199,7 @@ public class BaseServlet extends HttpServlet {
 	protected void displayLastLogInTime(HttpServletRequest req, VelocityContext context) {
 		HttpSession session = req.getSession();
 		Timestamp lastLoginTime = (Timestamp) session.getAttribute("LastLoginTime");
+		context.put("lastLoginTime", "");
 		if (lastLoginTime != null){
 			context.put("lastLoginTime", "Last log in time : " + lastLoginTime.toString());
 		}				
@@ -212,15 +213,9 @@ public class BaseServlet extends HttpServlet {
 	 * 			- HttpServletResponse
 	 * @throws IOException
 	 * 
-	 * 			Clear cache in case of browser back button pressed.
-	 * 			And checks user is already logged or not. Then redirects
+	 * 			Checks user is already logged or not. Then redirects
 	 */
-	protected void checkUserSession(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		
-		resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
-		resp.setHeader("Pragma", "no-cache"); // HTTP 1.0.
-		resp.setDateHeader("Expires", 0);
-		
+	protected void checkUserSession(HttpServletRequest req, HttpServletResponse resp) throws IOException {		
 		HttpSession session = req.getSession();
 		String username = (String) session.getAttribute("user");
 		if(username == null || username.isEmpty()){

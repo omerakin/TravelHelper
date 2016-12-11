@@ -29,7 +29,7 @@ public class RegistrationServlet extends BaseServlet {
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
 
-		
+		/*
 		prepareResponse("Register New User", response);
 		PrintWriter out = response.getWriter(); 
 		// error will not be null if we were forwarded her from the post method where something went wrong
@@ -41,8 +41,8 @@ public class RegistrationServlet extends BaseServlet {
 
 		displayForm(out); 
 		finishResponse(response);
+		*/
 		
-		/*
 		prepareResponseHtml(response);
 		VelocityContext context = getContext("Register New User");
 		Template template = getTemplate(request,"RegisterInfo.html");
@@ -54,7 +54,7 @@ public class RegistrationServlet extends BaseServlet {
 			context.put("errorMessage", errorMessage);
 		}
 		mergeAndPrintResponse(response, template, context);
-		*/
+		
 	}
 
 	/**

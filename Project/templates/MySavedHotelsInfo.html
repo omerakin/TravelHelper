@@ -13,6 +13,14 @@
       border-radius: 0;
     }
   </style>
+  <script type="text/javascript">
+    function theFunction (Hotel_id) {
+    	var xhttp = new XMLHttpRequest();
+    	xhttp.open("POST", "hotel?hotelId=" + Hotel_id, true);
+    	xhttp.send();
+        return true;
+    }
+  </script>
 </head>
 <body>
 
@@ -31,6 +39,7 @@
         <li><a href="/hotels">Hotels</a></li>
         <li class="active"><a href="/myhotels">My Saved Hotels</a></li>
         <li><a href="/myreviews">My Reviews</a></li>
+        <li><a href="/myexpedia">Expedia History</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li><a href="/logout"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
@@ -55,7 +64,7 @@
     	<p>Address : $hotelinfodb.Hotel_street_address</p>
     	<p>City : $hotelinfodb.Hotel_city, $hotelinfodb.Hotel_state</p>
     	<p>Rating : $hotelinfodb.AverageRating</p>
-    	<p><a href="$hotelinfodb.Expedia" target="_blank">Visit Expedia page!</a></p>
+    	<p><a href="$hotelinfodb.Expedia" target="_blank" onclick="return theFunction($hotelinfodb.Hotel_id);">Visit Expedia page!</a></p>
     	<form action="/myhotels" method="post">
     	<input type="hidden" name="hotelId" value="$hotelinfodb.Hotel_id"/>
     	<p><input class="btn btn-danger" type="submit" name="button" value="Delete"></p>

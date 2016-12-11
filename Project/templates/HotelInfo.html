@@ -11,10 +11,17 @@
     .navbar {
       margin-bottom: 0;
       border-radius: 0;
+    }    
+  </style>  
+  <script type="text/javascript">
+    function theFunction () {
+    	var xhttp = new XMLHttpRequest();
+    	xhttp.open("POST", "hotel?hotelId=" + $hotel_id, true);
+    	xhttp.send();
+        return true;
     }
-    
-    
-  </style>
+</script>
+
 </head>
 <body>
 
@@ -33,6 +40,7 @@
         <li><a href="/hotels">Hotels</a></li>
         <li class="active"><a href="/myhotels">My Saved Hotels</a></li>
         <li><a href="/myreviews">My Reviews</a></li>
+        <li><a href="/myexpedia">Expedia History</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li><a href="/logout"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
@@ -42,13 +50,13 @@
 </nav>
 <div class="jumbotron">
   <div class="container-fluid text-center">
-    <img src="images/hotel_image.gif" />
+    <p><img src="https://exp.cdn-hotels.com/hotels/1000000/150000/140600/140596/140596_275_z.jpg" style="width:600px;height:374px;"></p>
 	<p>Hotel Name :  $hotel_name</p>
 	<p>Address : $hotel_street_address</p>
 	<p>City : $hotel_city, $hotel_state</p>
 	<p>Rating : $averageRating</p>
-	<p><a href="$expedia" target="_blank">Visit Expedia page!</a></p>
-	<p><form action="/reviews" method="get">
+	<p><a href="$expedia" target="_blank" onclick="return theFunction();" >Visit Expedia page!</a></p>
+	<form action="/reviews" method="get">
 	<input type="hidden" name="hotelId" value="$hotel_id"/>
 	<p><input class="btn btn-default" type="submit" value="Reviews" style="float:left;"></p>
 	</form>	
@@ -59,7 +67,7 @@
 	<form action="/myhotels" method="post">
 	<input type="hidden" name="hotelId" value="$hotel_id"/>
 	<p> <input class="btn btn-default" type="submit" name="button" value="$value" style="float:left; margin-left: 25px;"> </p>
-	</form></p> 
+	</form> 
   </div>
 </div><br>
 

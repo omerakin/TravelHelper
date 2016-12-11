@@ -51,6 +51,9 @@ public class DatabaseHandler {
 	
 	/** Used to determine if liking_reviews table exists. */
 	private static final String LIKING_REVIEWS_SQL = "SHOW TABLES LIKE 'liking_reviews';";
+	
+	/** Used to determine if expedia_history table exists. */
+	private static final String EXPEDIA_HISTORY_SQL = "SHOW TABLES LIKE 'expedia_history';";
 
 	/** Used to create login_users table for this example. */
 	private static final String CREATE_SQL = "CREATE TABLE login_users ("
@@ -81,6 +84,10 @@ public class DatabaseHandler {
 	private static final String CREATE_LIKING_REVIEWS_SQL = "CREATE TABLE liking_reviews ("
 			+ "hotel_id char(20) NOT NULL , review_id char(250) NOT NULL , "
 			+ "username char(50) NULL );";	
+	
+	/** Used to create expedia_history table for this example. */
+	private static final String CREATE_EXPEDIA_HISTORY_SQL = "CREATE TABLE expedia_history ("
+			+ "username char(50) NOT NULL , hotel_id char(20) NOT NULL );";
 
 	/** Used to insert a new user's info into the login_users table */
 	private static final String REGISTER_SQL = "INSERT INTO login_users (username, password, usersalt) "
@@ -159,11 +166,24 @@ public class DatabaseHandler {
 	/** Used to get count information from liking_reviews. */
 	private static final String COUNT_USER_LIKED_SQL = "SELECT COUNT(*) FROM liking_reviews WHERE hotel_id = ? AND review_id = ? AND username = ?";
 	
+	/** Used to get count information from expedia_history. */
+	private static final String COUNT_EXPEDIA_HISTORY_SQL = "SELECT COUNT(*) FROM expedia_history WHERE username = ? AND hotel_id = ?";
+	
+	
 	/** Used to insert information to liking_reviews. */
 	private static final String INSERT_LIKING_REVIEWS_SQL = "INSERT INTO liking_reviews (hotel_id, review_id, username) VALUES (?, ?, ?);";
 	
 	/** Used to delete information from liking_reviews. */
 	private static final String DELETE_LIKING_REVIEWS_SQL = "DELETE FROM liking_reviews WHERE hotel_id = ? AND review_id = ? AND username = ?";
+	
+	/** Used to insert information to expedia_history. */
+	private static final String INSERT_EXPEDIA_HISTORY_SQL = "INSERT INTO expedia_history (username, hotel_id) VALUES (?, ?);";
+	
+	/** Used to get saved expedia_history information for username. */
+	private static final String MY_EXPEDIA_HISTORY_SQL = "SELECT hotel_id FROM expedia_history WHERE username = ?";
+	
+	/** Used to delete information from expedia_history. */
+	private static final String DELETE_EXPEDIA_HISTORY_SQL = "DELETE FROM expedia_history WHERE username = ? AND hotel_id = ?";
 	
 	/** Used to configure connection to database. */
 	private DatabaseConnector db;
@@ -270,10 +290,8 @@ public class DatabaseHandler {
 				// Check if create was successful
 				if (!statement.executeQuery(SAVED_HOTELS_SQL).next()) {
 					status = Status.CREATE_FAILED;
-					System.out.println("buraaaa FAIL");
 				} else {
 					status = Status.OK;
-					System.out.println("buraaaa OKAY");
 				}
 			} else {
 				status = Status.OK;
@@ -284,6 +302,20 @@ public class DatabaseHandler {
 				statement.executeUpdate(CREATE_LIKING_REVIEWS_SQL);
 				// Check if create was successful
 				if (!statement.executeQuery(LIKING_REVIEWS_SQL).next()) {
+					status = Status.CREATE_FAILED;
+				} else {
+					status = Status.OK;
+				}
+			} else {
+				status = Status.OK;
+			}
+			//statement.executeUpdate("DROP TABLE expedia_history;");
+			// Expedia History
+			if(!statement.executeQuery(EXPEDIA_HISTORY_SQL).next()){
+				// Table missing, must create
+				statement.executeUpdate(CREATE_EXPEDIA_HISTORY_SQL);
+				// Check if create was successful
+				if (!statement.executeQuery(EXPEDIA_HISTORY_SQL).next()) {
 					status = Status.CREATE_FAILED;
 					System.out.println("buraaaa FAIL");
 				} else {
@@ -787,10 +819,21 @@ public class DatabaseHandler {
 		}				
 	}	
 	
-	
-	public void listHotelInfoTemplateEngine(HttpServletRequest req, HttpServletResponse resp, VelocityContext context) throws FileNotFoundException, IOException {
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param context
+	 * 			- VelocityContext
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * 
+	 * 				Connect database and get specific information about hotel such as hotel_name, 
+	 * 			hotel_street_address, hotel_city, hotel_state
+	 */
+	public void listHotelInfoTemplateEngine(HttpServletRequest req, VelocityContext context) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
-		String hotelId = req.getParameter("hotelId");
+		String hotelId = req.getParameter("hotelId").trim();
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
 		String username = (String) session.getAttribute("user");
 		String value = "";
@@ -959,7 +1002,7 @@ public class DatabaseHandler {
 	 */
 	public void insertHotel(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
-		String hotelId = req.getParameter("hotelId");
+		String hotelId = req.getParameter("hotelId").trim();
 		String username = (String) session.getAttribute("user");		
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);		
 		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(INSERT_SAVED_HOTELS_SQL);){
@@ -984,7 +1027,7 @@ public class DatabaseHandler {
 	 */
 	public void deleteHotel(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();		
-		String hotelId = req.getParameter("hotelId");
+		String hotelId = req.getParameter("hotelId").trim();
 		String username = (String) session.getAttribute("user");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);		
 		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(DELETE_SAVED_HOTELS_SQL);){
@@ -1119,7 +1162,7 @@ public class DatabaseHandler {
 	public void listReviewsInfoTemplateEngine(HttpServletRequest req, VelocityContext context, String clicked_button) {
 		Vector<Reviewsinfodb> reviews = new Vector<>();
 		HttpSession session = req.getSession();
-		String hotelId = req.getParameter("hotelId");
+		String hotelId = req.getParameter("hotelId").trim();
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
 		String username = (String) session.getAttribute("user");
 		String sortBy = "";		
@@ -1274,7 +1317,7 @@ public class DatabaseHandler {
 	public void insertReview(HttpServletRequest req) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
 		
-		String hotelId = req.getParameter("hotelId");
+		String hotelId = req.getParameter("hotelId").trim();
 		String username = (String) session.getAttribute("user");
 		String user_review_title = req.getParameter("user_review_title");
 		String user_review_text = req.getParameter("user_review_text");
@@ -1312,7 +1355,7 @@ public class DatabaseHandler {
 	 */
 	public void deleteReview(HttpServletRequest req) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();		
-		String hotelId = req.getParameter("hotelId");
+		String hotelId = req.getParameter("hotelId").trim();
 		String username = (String) session.getAttribute("user");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
 		
@@ -1342,7 +1385,7 @@ public class DatabaseHandler {
 		String review_title = null;
 		String review_text = null;
 		String rating = null;
-		String hotelId = req.getParameter("hotelId");
+		String hotelId = req.getParameter("hotelId").trim();
 		String username = (String) session.getAttribute("user");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
 		
@@ -1385,8 +1428,8 @@ public class DatabaseHandler {
 	 */
 	public void insertLikeReview(HttpServletRequest req) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();
-		String hotelId = req.getParameter("hotelId");
-		String review_id = req.getParameter("review_id");
+		String hotelId = req.getParameter("hotelId").trim();
+		String review_id = req.getParameter("review_id").trim();
 		String username = (String) session.getAttribute("user");		
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);		
 		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(INSERT_LIKING_REVIEWS_SQL);){
@@ -1410,8 +1453,8 @@ public class DatabaseHandler {
 	 */
 	public void deleteLikeReview(HttpServletRequest req) throws FileNotFoundException, IOException {
 		HttpSession session = req.getSession();	
-		String hotelId = req.getParameter("hotelId");
-		String review_id = req.getParameter("review_id");
+		String hotelId = req.getParameter("hotelId").trim();
+		String review_id = req.getParameter("review_id").trim();
 		String username = (String) session.getAttribute("user");
 		hotelId = StringEscapeUtils.escapeHtml4(hotelId);		
 		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(DELETE_LIKING_REVIEWS_SQL);){
@@ -1423,6 +1466,103 @@ public class DatabaseHandler {
 			e.printStackTrace();
 		}			
 	}
+	
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param resp
+	 * 			- HttpServletResponse
+	 * @param context
+	 * 			- VelocityContext
+	 * 
+	 * 			Connect database and get Expedia History information such as hotel_id, 
+	 * 		then from hotel_id get expedia link and show user's clicked link
+	 */
+	public void listExpediaInfoTemplateEngine(HttpServletRequest req, HttpServletResponse resp,
+			VelocityContext context) {
+		HttpSession session = req.getSession();
+		String hotelId = req.getParameter("hotelId");
+		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
+		String username = (String) session.getAttribute("user");
+		Vector<ExpediaHistorydb> myExpediaHistory = new Vector<>();
+		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(MY_EXPEDIA_HISTORY_SQL);) {
+			statement.setString(1, username);
+			ResultSet results = statement.executeQuery();				
+			while (results.next()) {
+				try (PreparedStatement hotelStatement = connection.prepareStatement(HOTEL_HOTEL_SQL);) {
+					hotelStatement.setString(1, results.getString("hotel_id"));
+					ResultSet hotelResult = hotelStatement.executeQuery();				
+					if (hotelResult.next()) {
+						ExpediaHistorydb expediaHistorydb = new ExpediaHistorydb("https://www.expedia.com/" 
+												+ hotelResult.getString("hotel_city").replace(" ", "-") + "-" 
+												+ hotelResult.getString("hotel_name").replace(" ", "-") + ".h"
+												+ hotelResult.getString("hotel_id") + ".Hotel-Information", 
+												results.getString("hotel_id"));
+						myExpediaHistory.addElement(expediaHistorydb);
+					}
+				}
+			}
+			context.put("myExpediaHistory", myExpediaHistory);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
+	}
+
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * 
+	 * 			Insert expedia link to the user's expedia history
+	 */
+	public void insertExpedia(HttpServletRequest req) {
+		HttpSession session = req.getSession();	
+		String hotelId = req.getParameter("hotelId").trim();
+		String username = (String) session.getAttribute("user");
+		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
+		try(Connection connection = db.getConnection(); PreparedStatement statementCountExpedia = connection.prepareStatement(COUNT_EXPEDIA_HISTORY_SQL);){
+			statementCountExpedia.setString(1, username);
+			statementCountExpedia.setString(2, hotelId);
+			ResultSet expediaCountResultSet = statementCountExpedia.executeQuery();
+			if(expediaCountResultSet.next()){
+				if(expediaCountResultSet.getInt(1)==0){
+					try(PreparedStatement insertExpediaHistory = connection.prepareStatement(INSERT_EXPEDIA_HISTORY_SQL);){
+						insertExpediaHistory.setString(1, username);
+						insertExpediaHistory.setString(2, hotelId);
+						insertExpediaHistory.executeUpdate();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
+	}
+	
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * 
+	 * 		user's expedia link information is deleted from the expedia_history table
+	 */
+	public void deleteExpedia(HttpServletRequest req) {
+		HttpSession session = req.getSession();	
+		String hotelId = req.getParameter("hotelId").trim();
+		String username = (String) session.getAttribute("user");
+		hotelId = StringEscapeUtils.escapeHtml4(hotelId);		
+		try(Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(DELETE_EXPEDIA_HISTORY_SQL);){
+			statement.setString(1, username);
+			statement.setString(2, hotelId);
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
 	
 	/**
 	 * 
@@ -1536,7 +1676,5 @@ public class DatabaseHandler {
 		printWriter.println("<input type=\"hidden\" name=\"review_id\" value=\"" + review_id + "\" />");
 		printWriter.println("</form>");		
 	}
-
-
 	
 }
