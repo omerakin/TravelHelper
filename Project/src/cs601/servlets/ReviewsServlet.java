@@ -94,7 +94,7 @@ public class ReviewsServlet extends BaseServlet{
 			dbhandler.listReviewsInfoTemplateEngine(req, context, clicked_button);
 		} else if (clicked_button.equals("Modify")) {			
 			dbhandler.modifyReview(req, context);			
-		} else if (clicked_button.equals("Default")) {
+		} else if (clicked_button.equals("By date (most oldest ones on top)")) {
 			dbhandler.listReviewsInfoTemplateEngine(req, context, clicked_button);
 		} else if (clicked_button.equals("By date (most recent ones on top)")) {
 			dbhandler.listReviewsInfoTemplateEngine(req, context, clicked_button);

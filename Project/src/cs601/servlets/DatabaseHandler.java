@@ -120,8 +120,8 @@ public class DatabaseHandler {
 	/** Used to get information about hotels. */
 	private static final String HOTELS_HOTELS_SQL = "SELECT hotel_id, hotel_name, hotel_street_address, hotel_city, hotel_state FROM hotels";
 	
-	/** Used to get rating from specific hotel_id. */
-	private static final String HOTELS_REVIEWS_SQL = "SELECT rating FROM reviews WHERE hotel_id = ?";
+	/** Used to get average rating and count rating from specific hotel_id. */
+	private static final String HOTELS_AVG_RATING_SQL = "SELECT AVG(rating), COUNT(rating) FROM reviews WHERE hotel_id = ?";
 	
 	/** Used to get information about hotels. */
 	private static final String HOTEL_HOTEL_SQL = "SELECT hotel_id, hotel_name, hotel_street_address, hotel_city, hotel_state FROM hotels WHERE hotel_id = ?";
@@ -168,7 +168,6 @@ public class DatabaseHandler {
 	
 	/** Used to get count information from expedia_history. */
 	private static final String COUNT_EXPEDIA_HISTORY_SQL = "SELECT COUNT(*) FROM expedia_history WHERE username = ? AND hotel_id = ?";
-	
 	
 	/** Used to insert information to liking_reviews. */
 	private static final String INSERT_LIKING_REVIEWS_SQL = "INSERT INTO liking_reviews (hotel_id, review_id, username) VALUES (?, ?, ?);";
@@ -603,15 +602,13 @@ public class DatabaseHandler {
 			while (results.next()) {
 				double averageRating = 0;
 				int count = 0;
-				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_AVG_RATING_SQL);){
 					statementReview.setString(1, results.getString("hotel_id"));
 					ResultSet reviewResultSet = statementReview.executeQuery();
-					while(reviewResultSet.next()){
-						String rating = reviewResultSet.getString("rating");
-						averageRating = averageRating + Double.parseDouble(rating);
-						count++;
-					}
-					if (count != 0) { averageRating = (averageRating / count); }  
+					if(reviewResultSet.next()){
+						averageRating = reviewResultSet.getDouble(1);
+						count = reviewResultSet.getInt(2);
+					} 
 				}
 				printWriter.println("<form action=\"/hotel\" method=\"get\">");
 				printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
@@ -643,15 +640,13 @@ public class DatabaseHandler {
 			while (results.next()) {
 				double averageRating = 0;
 				int count = 0;
-				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_AVG_RATING_SQL);){
 					statementReview.setString(1, results.getString("hotel_id"));
 					ResultSet reviewResultSet = statementReview.executeQuery();
-					while(reviewResultSet.next()){
-						String rating = reviewResultSet.getString("rating");
-						averageRating = averageRating + Double.parseDouble(rating);
-						count++;
-					}
-					if (count != 0) { averageRating = (averageRating / count); }  
+					if(reviewResultSet.next()){
+						averageRating = reviewResultSet.getDouble(1);
+						count = reviewResultSet.getInt(2);
+					} 
 				}
 				Hotelsinfodb hotelsinfodb = new Hotelsinfodb(results.getString("hotel_id"), results.getString("hotel_name"), count, averageRating);
 				hotels.addElement(hotelsinfodb);
@@ -684,15 +679,13 @@ public class DatabaseHandler {
 						searchedHotel.trim().equals("")){
 					double averageRating = 0;
 					int count = 0;
-					try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+					try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_AVG_RATING_SQL);){
 						statementReview.setString(1, results.getString("hotel_id"));
 						ResultSet reviewResultSet = statementReview.executeQuery();
-						while(reviewResultSet.next()){
-							String rating = reviewResultSet.getString("rating");
-							averageRating = averageRating + Double.parseDouble(rating);
-							count++;
-						}
-						if (count != 0) { averageRating = (averageRating / count); }  
+						if(reviewResultSet.next()){
+							averageRating = reviewResultSet.getDouble(1);
+							count = reviewResultSet.getInt(2);
+						} 
 					}
 					printWriter.println("<form action=\"/hotel\" method=\"get\">");
 					printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
@@ -730,15 +723,13 @@ public class DatabaseHandler {
 						searchedHotel.trim().equals("")){
 					double averageRating = 0;
 					int count = 0;
-					try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+					try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_AVG_RATING_SQL);){
 						statementReview.setString(1, results.getString("hotel_id"));
 						ResultSet reviewResultSet = statementReview.executeQuery();
-						while(reviewResultSet.next()){
-							String rating = reviewResultSet.getString("rating");
-							averageRating = averageRating + Double.parseDouble(rating);
-							count++;
-						}
-						if (count != 0) { averageRating = (averageRating / count); }  
+						if(reviewResultSet.next()){
+							averageRating = reviewResultSet.getDouble(1);
+							count = reviewResultSet.getInt(2);
+						} 
 					}
 					Hotelsinfodb hotelsinfodb = new Hotelsinfodb(results.getString("hotel_id"), results.getString("hotel_name"), count, averageRating);
 					hotels.addElement(hotelsinfodb);
@@ -774,16 +765,12 @@ public class DatabaseHandler {
 			ResultSet results = statement.executeQuery();				
 			if (results.next()) {
 				double averageRating = 0;
-				int count = 0;
-				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_AVG_RATING_SQL);){
 					statementReview.setString(1, results.getString("hotel_id"));
 					ResultSet reviewResultSet = statementReview.executeQuery();
-					while(reviewResultSet.next()){
-						String rating = reviewResultSet.getString("rating");
-						averageRating = averageRating + Double.parseDouble(rating);
-						count++;
-					}
-					if (count != 0) { averageRating = (averageRating / count); }  
+					if(reviewResultSet.next()){
+						averageRating = reviewResultSet.getDouble(1);
+					} 
 				}
 				printWriter.println("<img src=\"WebContent/images/hotel_image.gif" + "\" />");
 				printWriter.println("<p>" +  "Hotel Name : " + results.getString("hotel_name")+ "</p>");
@@ -842,16 +829,12 @@ public class DatabaseHandler {
 			ResultSet results = statement.executeQuery();				
 			if (results.next()) {
 				double averageRating = 0;
-				int count = 0;
-				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_AVG_RATING_SQL);){
 					statementReview.setString(1, results.getString("hotel_id"));
 					ResultSet reviewResultSet = statementReview.executeQuery();
-					while(reviewResultSet.next()){
-						String rating = reviewResultSet.getString("rating");
-						averageRating = averageRating + Double.parseDouble(rating);
-						count++;
-					}
-					if (count != 0) { averageRating = (averageRating / count); }  
+					if(reviewResultSet.next()){
+						averageRating = reviewResultSet.getDouble(1);
+					} 
 				}				
 				context.put("hotel_name", results.getString("hotel_name"));
 				context.put("hotel_street_address", results.getString("hotel_street_address"));
@@ -901,16 +884,12 @@ public class DatabaseHandler {
 			ResultSet results = statement.executeQuery();				
 			while (results.next()) {
 				double averageRating = 0;
-				int count = 0;
-				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_AVG_RATING_SQL);){
 					statementReview.setString(1, results.getString("hotel_id"));
 					ResultSet reviewResultSet = statementReview.executeQuery();
-					while(reviewResultSet.next()){
-						String rating = reviewResultSet.getString("rating");
-						averageRating = averageRating + Double.parseDouble(rating);
-						count++;
-					}
-					if (count != 0) { averageRating = (averageRating / count); }  
+					if(reviewResultSet.next()){
+						averageRating = reviewResultSet.getDouble(1);
+					} 
 				}
 				try(PreparedStatement statementHotel = connection.prepareStatement(HOTEL_HOTEL_SQL);){
 					statementHotel.setString(1, results.getString("hotel_id"));
@@ -955,16 +934,12 @@ public class DatabaseHandler {
 			ResultSet results = statement.executeQuery();				
 			while (results.next()) {
 				double averageRating = 0;
-				int count = 0;
-				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_REVIEWS_SQL);){
+				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_AVG_RATING_SQL);){
 					statementReview.setString(1, results.getString("hotel_id"));
 					ResultSet reviewResultSet = statementReview.executeQuery();
-					while(reviewResultSet.next()){
-						String rating = reviewResultSet.getString("rating");
-						averageRating = averageRating + Double.parseDouble(rating);
-						count++;
-					}
-					if (count != 0) { averageRating = (averageRating / count); }  
+					if(reviewResultSet.next()){
+						averageRating = reviewResultSet.getDouble(1);
+					} 
 				}
 				try(PreparedStatement statementHotel = connection.prepareStatement(HOTEL_HOTEL_SQL);){
 					statementHotel.setString(1, results.getString("hotel_id"));
