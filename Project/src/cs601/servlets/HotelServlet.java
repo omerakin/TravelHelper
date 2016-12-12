@@ -1,16 +1,11 @@
 package cs601.servlets;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
 
 /**
  * 
@@ -29,15 +24,6 @@ public class HotelServlet extends BaseServlet {
 	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		
-		/*
-		checkUserSession(req, resp);
-		prepareResponse("Hotel", resp);
-		displayLogOut(resp);
-		dbhandler.listHotelInfo(req, resp);
-		endingResponse(resp);
-		*/		
-		
 		checkUserSession(req, resp);
 		prepareResponseHtml(resp);
 		VelocityContext context = getContext("Hotel");

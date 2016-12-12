@@ -33,14 +33,6 @@ public class TouristAttractionServlet extends BaseServlet {
 		
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		/*
-		checkUserSession(req, resp);
-		prepareResponse("Tourist Attraction", resp);
-		displayLogOut(resp);
-		listAttractionsInfo(req, resp);
-		endingResponse(resp);
-		*/
-		
 		checkUserSession(req, resp);
 		prepareResponseHtml(resp);
 		VelocityContext context = getContext("Tourist Attraction");

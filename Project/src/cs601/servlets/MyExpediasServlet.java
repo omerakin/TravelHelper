@@ -15,6 +15,10 @@ public class MyExpediasServlet extends BaseServlet {
 	// DatabaseHandler interacts with the MySQL database
 	private static final DatabaseHandler dbhandler = DatabaseHandler.getInstance();
 
+	/**
+	 * 	Firstly checks user already logged in or not,
+	 *  if logged in, then list expedia's info to the user
+	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		checkUserSession(req, resp);
@@ -25,6 +29,10 @@ public class MyExpediasServlet extends BaseServlet {
 		mergeAndPrintResponse(resp, template, context);
 	}
 
+	/**
+	 * 	Firstly checks user already logged in or not,
+	 *  if logged in, then if user clicked delete button delete expedia.
+	 */
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		checkUserSession(req, resp);

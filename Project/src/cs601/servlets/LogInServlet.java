@@ -1,17 +1,13 @@
 package cs601.servlets;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
+import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
 
 /**
  * 
@@ -29,21 +25,6 @@ public class LogInServlet extends BaseServlet{
 	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		/*
-		checkUserLoggedIn(req, resp);
-		prepareResponse("Login", resp);
-		PrintWriter printWriter = resp.getWriter(); 
-		// error will not be null if we were forwarded her from the post method where something went wrong
-		String error = req.getParameter("error");
-		if(error != null) {
-			String errorMessage = getStatusMessage(error);
-			printWriter.println("<p style=\"color: red;\">" + errorMessage + "</p>");
-		}
-		displayLogInForm(printWriter);
-		displayRegister(printWriter);
-		finishResponse(resp);
-		*/
-		
 		checkUserLoggedIn(req, resp);
 		prepareResponseHtml(resp);
 		VelocityContext context = getContext("Login");
@@ -107,41 +88,6 @@ public class LogInServlet extends BaseServlet{
 		if(username != null){
 			resp.sendRedirect(resp.encodeRedirectURL("/hotels"));
 		}
-	}
-	
-	/** Writes and HTML form that shows two textfields and a button to the PrintWriter */
-	private void displayLogInForm(PrintWriter out) {
-		assert out != null;
-
-		out.println("<form action=\"/login\" method=\"post\">"); // the form will be processed by POST
-		out.println("<table border=\"0\">");
-		out.println("\t<tr>");
-		out.println("\t\t<td>Usename:</td>");
-		out.println("\t\t<td><input type=\"text\" name=\"user\" size=\"30\"></td>");
-		out.println("\t</tr>");
-		out.println("\t<tr>");
-		out.println("\t\t<td>Password:</td>");
-		out.println("\t\t<td><input type=\"password\" name=\"pass\" size=\"30\"></td>");
-		out.println("</tr>");
-		out.println("</table>");
-		out.println("<p><input type=\"submit\" value=\"Login\"></p>");
-		out.println("</form>");
-	}
-	
-	/**
-	 * 
-	 * @param out
-	 * 			- PrintWriter
-	 * 	
-	 * 			Shows the register button
-	 */
-	private void displayRegister(PrintWriter out) {
-		assert out != null;
-		
-		out.println("<form action=\"/register\" method=\"get\">");
-		out.println("<p>-------------------------- or --------------------------</p>");
-		out.println("<p><input type=\"submit\" value=\"Register\"></p>");
-		out.println("</form>");
 	}
 
 }

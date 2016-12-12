@@ -1,9 +1,7 @@
 package cs601.servlets;
 
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.sql.Connection;
@@ -11,7 +9,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.Random;
 import java.util.UUID;
 import java.util.Vector;
@@ -22,9 +19,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.velocity.VelocityContext;
-
-import cs601.hotelapp.Address;
-import cs601.hotelapp.Hotel;
 
 /**
  * Handles all database-related actions. Uses singleton design pattern. Modified
@@ -107,16 +101,7 @@ public class DatabaseHandler {
 	
 
 	// ------------------ constants below will be useful for the login operation
-	// once you implement it
-	/** Used to retrieve the salt associated with a specific user. */
-	private static final String SALT_SQL = "SELECT usersalt FROM login_users WHERE username = ?";
-
-	/** Used to authenticate a user. */
-	private static final String AUTH_SQL = "SELECT username FROM login_users " + "WHERE username = ? AND password = ?";
-
-	/** Used to remove a user from the database. */
-	private static final String DELETE_SQL = "DELETE FROM login_users WHERE username = ?";
-	
+	// once you implement it	
 	/** Used to get information about hotels. */
 	private static final String HOTELS_HOTELS_SQL = "SELECT hotel_id, hotel_name, hotel_street_address, hotel_city, hotel_state FROM hotels";
 	
@@ -559,76 +544,6 @@ public class DatabaseHandler {
 			e.printStackTrace();
 		}	
 	}
-
-	/**
-	 * Gets the salt for a specific user.
-	 *
-	 * @param connection
-	 *            - active database connection
-	 * @param user
-	 *            - which user to retrieve salt for
-	 * @return salt for the specified user or null if user does not exist
-	 * @throws SQLException
-	 *             if any issues with database connection
-	 */
-	private String getSalt(Connection connection, String user) throws SQLException {
-		assert connection != null;
-		assert user != null;
-
-		String salt = null;
-
-		try (PreparedStatement statement = connection.prepareStatement(SALT_SQL);) {
-			statement.setString(1, user);
-
-			ResultSet results = statement.executeQuery();
-
-			if (results.next()) {
-				salt = results.getString("usersalt");
-			}
-		}
-
-		return salt;
-	}
-	
-
-	/**
-	 * 
-	 * @param resp
-	 * 			- HttpServletResponse
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 * 
-	 * 			Connect database and get all information about hotels such as hotel_name, 
-	 * 			hotel_street_address, hotel_city, hotel_state
-	 */
-	public void listGeneralHotelsInfo(HttpServletResponse resp) throws FileNotFoundException, IOException {
-		PrintWriter printWriter = resp.getWriter();
-		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(HOTELS_HOTELS_SQL);) {
-			ResultSet results = statement.executeQuery();				
-			while (results.next()) {
-				double averageRating = 0;
-				int count = 0;
-				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_AVG_RATING_SQL);){
-					statementReview.setString(1, results.getString("hotel_id"));
-					ResultSet reviewResultSet = statementReview.executeQuery();
-					if(reviewResultSet.next()){
-						averageRating = reviewResultSet.getDouble(1);
-						count = reviewResultSet.getInt(2);
-					} 
-				}
-				printWriter.println("<form action=\"/hotel\" method=\"get\">");
-				printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
-				printWriter.println("<p>" +  "Hotel Name : " +"<input type=\"submit\" value=\""+ results.getString("hotel_name")+ "\" "
-						+ "style=\"background-color: Transparent; cursor:pointer; overflow: hidden; color: blue; border: none; text-decoration: underline;\">" + "</p>");
-				printWriter.println("</form>");
-				printWriter.println("<p>" + "Total Reviews : " + count + "</p>");
-				printWriter.println("<p>" + "Rating : " + averageRating + "</p>");				
-				printWriter.println("<hr>");
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}			
-	}
 	
 	/**
 	 * 
@@ -662,52 +577,7 @@ public class DatabaseHandler {
 			e.printStackTrace();
 		}		
 	}
-	
-	/**
-	 * 
-	 * @param req 
-	 * 			- HttpServletRequest
-	 * @param resp
-	 * 			- HttpServletResponse
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 * 
-	 * 			Connect database and get searched hotel information such as hotel_name, 
-	 * 			hotel_street_address, hotel_city, hotel_state
-	 */
-	public void listSearchedHotelsInfo(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
-		PrintWriter printWriter = resp.getWriter();
-		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(HOTELS_HOTELS_SQL);) {
-			ResultSet results = statement.executeQuery();				
-			while (results.next()) {
-				String searchedHotel = req.getParameter("searchHotel").toLowerCase();
-				if(results.getString("hotel_name").toLowerCase().contains(searchedHotel) || 
-						searchedHotel.trim().equals("")){
-					double averageRating = 0;
-					int count = 0;
-					try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_AVG_RATING_SQL);){
-						statementReview.setString(1, results.getString("hotel_id"));
-						ResultSet reviewResultSet = statementReview.executeQuery();
-						if(reviewResultSet.next()){
-							averageRating = reviewResultSet.getDouble(1);
-							count = reviewResultSet.getInt(2);
-						} 
-					}
-					printWriter.println("<form action=\"/hotel\" method=\"get\">");
-					printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
-					printWriter.println("<p>" +  "Hotel Name : " +"<input type=\"submit\" value=\""+ results.getString("hotel_name")+ "\" "
-							+ "style=\"background-color: Transparent; cursor:pointer; overflow: hidden; color: blue; border: none; text-decoration: underline;\">" + "</p>");
-					printWriter.println("</form>");
-					printWriter.println("<p>" + "Total Reviews : " + count + "</p>");
-					printWriter.println("<p>" + "Rating : " + averageRating + "</p>");
-					printWriter.println("<hr>");
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}		
-	}
-	
+
 	/**
 	 * 
 	 * @param req
@@ -746,71 +616,6 @@ public class DatabaseHandler {
 			e.printStackTrace();
 		}
 	}
-
-	/**
-	 * 
-	 * @param req 
-	 * 			- HttpServletRequest
-	 * @param resp
-	 * 			- HttpServletResponse
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 * 
-	 * 			Connect database and get specific information about hotel such as hotel_name, 
-	 * 			hotel_street_address, hotel_city, hotel_state
-	 */
-	public void listHotelInfo(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
-		HttpSession session = req.getSession();
-		PrintWriter printWriter = resp.getWriter();
-		String hotelId = req.getParameter("hotelId");
-		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
-		String username = (String) session.getAttribute("user");
-		String value = "";
-		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(HOTEL_HOTEL_SQL);) {
-			statement.setString(1, hotelId);
-			ResultSet results = statement.executeQuery();				
-			if (results.next()) {
-				double averageRating = 0;
-				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_AVG_RATING_SQL);){
-					statementReview.setString(1, results.getString("hotel_id"));
-					ResultSet reviewResultSet = statementReview.executeQuery();
-					if(reviewResultSet.next()){
-						averageRating = reviewResultSet.getDouble(1);
-					} 
-				}
-				printWriter.println("<img src=\"WebContent/images/hotel_image.gif" + "\" />");
-				printWriter.println("<p>" +  "Hotel Name : " + results.getString("hotel_name")+ "</p>");
-				printWriter.println("<p>" + "Address : " + results.getString("hotel_street_address") + "</p>");
-				printWriter.println("<p>" + "City : " + results.getString("hotel_city") + ", " + results.getString("hotel_state") + "</p>");
-				printWriter.println("<p>" + "Rating : " + averageRating + "</p>");
-				printWriter.println("<p> the link to expedia's page of this hotel </p>");				
-				printWriter.println("<form action=\"/reviews\" method=\"get\">");
-				printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
-				printWriter.println("<p><input type=\"submit\" value=\"Reviews\" style=\"float:left;\"></p>");
-				printWriter.println("</form>");
-				printWriter.println("<form action=\"/touristattraction\" method=\"get\">");
-				printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
-				printWriter.println("<p><input type=\"submit\" value=\"Tourist Attraction\" style=\"float:left; margin-left: 25px;\"></p>");
-				printWriter.println("</form>");
-				try (PreparedStatement mySavedHotelstatement = connection.prepareStatement(MYHOTELS_SAVED_HOTELS_SQL_v2);) {
-					mySavedHotelstatement.setString(1, username);
-					mySavedHotelstatement.setString(2, results.getString("hotel_id"));
-					ResultSet mySavedHotelresults = mySavedHotelstatement.executeQuery();					
-					if (mySavedHotelresults.next()) {
-						value = "Unsave";
-					} else {
-						value = "Save";
-					}
-				}
-				printWriter.println("<form action=\"/myhotels\" method=\"post\">");
-				printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
-				printWriter.println("<p>" + "<input type=\"submit\" name=\"button\" value=\"" + value + "\" style=\"float:left; margin-left: 25px;\">" + "</p>");
-				printWriter.println("</form>");				
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}				
-	}	
 	
 	/**
 	 * 
@@ -868,57 +673,6 @@ public class DatabaseHandler {
 		}				
 	}	
 	
-	/**
-	 * 
-	 * @param req 
-	 * @param resp
-	 * 			- HttpServletResponse
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 * 
-	 * 			Connect database and get My Saved Hotels information such as hotel_name, 
-	 * 			hotel_street_address, hotel_city, hotel_state
-	 */
-	public void listMySavedHotelsInfo(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
-		HttpSession session = req.getSession();
-		PrintWriter printWriter = resp.getWriter();
-		String hotelId = req.getParameter("hotelId");
-		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
-		String username = (String) session.getAttribute("user");
-		try (Connection connection = db.getConnection(); PreparedStatement statement = connection.prepareStatement(MYHOTELS_SAVED_HOTELS_SQL_v1);) {
-			statement.setString(1, username);
-			ResultSet results = statement.executeQuery();				
-			while (results.next()) {
-				double averageRating = 0;
-				try(PreparedStatement statementReview = connection.prepareStatement(HOTELS_AVG_RATING_SQL);){
-					statementReview.setString(1, results.getString("hotel_id"));
-					ResultSet reviewResultSet = statementReview.executeQuery();
-					if(reviewResultSet.next()){
-						averageRating = reviewResultSet.getDouble(1);
-					} 
-				}
-				try(PreparedStatement statementHotel = connection.prepareStatement(HOTEL_HOTEL_SQL);){
-					statementHotel.setString(1, results.getString("hotel_id"));
-					ResultSet hotelResultSet = statementHotel.executeQuery();					
-					while(hotelResultSet.next()){
-						printWriter.println("<p>" + "Hotel Name : " + hotelResultSet.getString("hotel_name")+ "</p>");
-						printWriter.println("<p>" + "Address : " + hotelResultSet.getString("hotel_street_address") + "</p>");
-						printWriter.println("<p>" + "City : " + hotelResultSet.getString("hotel_city") + ", " + hotelResultSet.getString("hotel_state") + "</p>");
-						printWriter.println("<p>" + "Rating : " + averageRating + "</p>");
-						printWriter.println("<p> the link to expedia's page of this hotel </p>");
-						printWriter.println("<form action=\"/myhotels\" method=\"post\">");
-						printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + results.getString("hotel_id") + "\" />");
-						printWriter.println("<p>" + "<input type=\"submit\" name=\"button\" value=\"Delete\" >" + "</p>");
-						printWriter.println("</form>");
-						printWriter.println("<hr>");
-					}
-				}				
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}			
-	}
-
 	/**
 	 * 
 	 * @param req
@@ -1044,86 +798,6 @@ public class DatabaseHandler {
 			e.printStackTrace();
 		}
 		return query;
-	}
-	
-
-
-	/**
-	 * 
-	 * @param req
-	 * 			- HttpServletRequest
-	 * @param resp
-	 * 			- HttpServletResponse
-	 * @param clicked_button
-	 * 			- which button is clicked checks
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 * 
-	 * 			Connect database and get all review information for specific hotel such as username, 
-	 * 		rating, review_title, review_text
-	 * 			Compare username with user's username, if they are equal, 
-	 * 		it allows user to edit his/her own review such as modify or delete 
-	 */
-	public void listReviewsInfo(HttpServletRequest req, HttpServletResponse resp, String clicked_button) throws FileNotFoundException, IOException {
-		HttpSession session = req.getSession();
-		PrintWriter printWriter = resp.getWriter();
-		String hotelId = req.getParameter("hotelId");
-		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
-		String username = (String) session.getAttribute("user");
-		String sortBy = "";
-		
-		if(clicked_button.equals("By date (most recent ones on top)")) {
-			sortBy = " ORDER BY date DESC";
-		} else if(clicked_button.equals("By rating (highly rated on top)")) {
-			sortBy = " ORDER BY rating DESC";
-		}		
-		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(REVIEWS_SQL_v1 + sortBy);){
-			statementReview.setString(1, hotelId);
-			ResultSet reviewResultSet = statementReview.executeQuery();			
-			int count = 0;
-			while(reviewResultSet.next()){
-				printWriter.println("<p>" + "Review by " + reviewResultSet.getString("username") + ": " + "</p>"); 
-				printWriter.println("<p>" + "Rating : " + reviewResultSet.getString("rating") + "</p>"); 
-				printWriter.println("<p>" + "Title : " + reviewResultSet.getString("review_title") + "</p>"); 
-				printWriter.println("<p>" + "Text : " + reviewResultSet.getString("review_text") + "</p>"); 
-				printWriter.println("<p>" + "Date : " + reviewResultSet.getString("date") + "</p>");
-				try(PreparedStatement statementCountLike = connection.prepareStatement(COUNT_LIKING_REVIEWS_SQL);){
-					statementCountLike.setString(1, hotelId);
-					statementCountLike.setString(2, reviewResultSet.getString("review_id"));
-					ResultSet countLikeResultSet = statementCountLike.executeQuery();
-					if (countLikeResultSet.next()){
-						printWriter.println("<p>" + countLikeResultSet.getInt(1) + " users found this Review helpful" + "</p>");
-					}
-				}					
-				if(username.equals(reviewResultSet.getString("username"))){	
-					displayModifyOrDeleteReview(printWriter, hotelId);
-					count++; 
-				} else {
-					try(PreparedStatement statementUsersLike = connection.prepareStatement(COUNT_USER_LIKED_SQL);){
-						statementUsersLike.setString(1, hotelId);
-						statementUsersLike.setString(2, reviewResultSet.getString("review_id"));
-						statementUsersLike.setString(3, username);
-						ResultSet usersLikeResultSet = statementUsersLike.executeQuery();
-						if(usersLikeResultSet.next()){
-							if(usersLikeResultSet.getInt(1)==0){
-								displayLike(printWriter, hotelId, reviewResultSet.getString("review_id"), "Like");
-							} else {
-								displayLike(printWriter, hotelId, reviewResultSet.getString("review_id"), "Unlike");
-							}
-						}					
-					}					
-				}				
-				printWriter.println("<hr>"); 
-			}
-			if(count == 0 && (!clicked_button.equals("Modify"))) {
-				displayReview(printWriter, hotelId);
-			}			
-			reviewResultSet.close();
-			statementReview.close();			
-			connection.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	/**
@@ -1302,54 +976,6 @@ public class DatabaseHandler {
 			e.printStackTrace();
 		}
 		
-	}
-
-	/**
-	 * 
-	 * @param req
-	 * 			- HttpServletRequest
-	 * @param resp
-	 * 			- HttpServletResponse
-	 * @param clicked_button
-	 * 			- which button is clicked checks
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 * 
-	 * 			Connect database and get all review information that user submitted such as hotel_name,
-	 * 		rating, review_title, review_text.
-	 * 			 
-	 */
-	public void listMyReviewsInfo(HttpServletRequest req, HttpServletResponse resp) throws FileNotFoundException, IOException {
-		HttpSession session = req.getSession();
-		PrintWriter printWriter = resp.getWriter();
-		String username = (String) session.getAttribute("user");
-		String hotelName = "";
-		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(MYREVIEWS_SQL);){
-			statementReview.setString(1, username);
-			ResultSet reviewResultSet = statementReview.executeQuery();	
-			while(reviewResultSet.next()){
-				try(PreparedStatement statementHotel = connection.prepareStatement(MYREVIEWS_HOTELS_SQL);){
-					statementHotel.setString(1, reviewResultSet.getString("hotel_id"));
-					ResultSet hotelResultSet = statementHotel.executeQuery();
-					if(hotelResultSet.next()){
-						hotelName = hotelResultSet.getString("hotel_name");
-					}
-				}
-				printWriter.println("<p>" + "Hotel Name : " + hotelName + "</p>"); 
-				printWriter.println("<p>" + "Rating : " + reviewResultSet.getString("rating") + "</p>"); 
-				printWriter.println("<p>" + "Title : " + reviewResultSet.getString("review_title") + "</p>"); 
-				printWriter.println("<p>" + "Text : " + reviewResultSet.getString("review_text") + "</p>"); 
-				if(username.equals(reviewResultSet.getString("username"))){	
-					displayModifyOrDeleteReview(printWriter, reviewResultSet.getString("hotel_id"));
-				}
-				printWriter.println("<p>" + "---------------------------------------------------------" + "</p>"); 
-			}			
-			reviewResultSet.close();
-			statementReview.close();			
-			connection.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	/**
@@ -1650,121 +1276,6 @@ public class DatabaseHandler {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	
-	
-	/**
-	 * 
-	 * @param printWriter
-	 * 			- PrintWriter
-	 * @param hotelId
-	 * 			- Hotel Id 
-	 * 
-	 * 			Modify and Delete buttons are formed. And if one of them is clicked, 
-	 * 		with the hotel_id info, it is sent to the post method of reviewsservlet.
-	 */
-	private void displayModifyOrDeleteReview(PrintWriter printWriter, String hotelId) {
-		printWriter.println("<form action=\"/reviews\" method=\"post\">");
-		printWriter.println("<p><input type=\"submit\" name=\"button\" value=\"Modify\"> &nbsp; &nbsp; &nbsp; &nbsp; <input type=\"submit\" name=\"button\" value=\"Delete\"> </p>");
-		printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + hotelId + "\" />");
-		printWriter.println("</form>");	
-	}
-	
-
-	/**
-	 * 
-	 * @param printWriter
-	 * 			- PrintWriter
-	 * @param hotelId
-	 * 			- Hotel Id
-	 * 
-	 * 			Display review information areas such as Review title, Review text, Rating
-	 * 		and if it is clicked, information are sent to the post method of reviewsservlet. 
-	 */
-	private void displayReview(PrintWriter printWriter, String hotelId) {
-		printWriter.println("<form action=\"/reviews\" method=\"post\">");
-		printWriter.println("Review title:  <input type=\"text\" name=\"user_review_title\" size=\"97\">  </br>");
-		printWriter.println("Review text:   </br> <textarea name='user_review_text' id='comment' rows=\"5\" cols=\"100\"></textarea><br />");
-		printWriter.println("Rating: <input type=\"radio\" name=\"user_star\" value=\"0\" />0");
-		printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"1\" />1");
-		printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"2\" />2");
-		printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"3\" />3");
-		printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"4\" />4");
-		printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"5\" />5 <br />");
-		printWriter.println("<p><input type=\"submit\" name=\"button\" value=\"Submit\"></p>");
-		printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + hotelId + "\" />");
-		printWriter.println("</form>");
-	}	
-	
-	
-	/**
-	 * 
-	 * @param printWriter
-	 * 			- PrintWriter
-	 * @param hotelId
-	 * 			- Hotel Id
-	 * @param review_title
-	 * 			- Review Title
-	 * @param review_text
-	 * 			- Review Text
-	 * @param rating
-	 * 			- Rating
-	 * 
-	 * 			For the Modify, user's review information is filled.
-	 */
-	private void prepareReview(PrintWriter printWriter, String hotelId, String review_title, String review_text, String rating) {
-		printWriter.println("<form action=\"/reviews\" method=\"post\">");
-		printWriter.println("Review title:  <input type=\"text\" name=\"user_review_title\" size=\"97\" value=\"" + review_title + "\">  </br>");
-		printWriter.println("Review text:   </br> <textarea name='user_review_text' id='comment' rows=\"5\" cols=\"100\" >" + review_text + "</textarea><br />");
-		if(rating.trim().equals("0")){
-			printWriter.println("Rating: <input type=\"radio\" name=\"user_star\" value=\"0\" checked=\"checked\" />0");
-		} else {
-			printWriter.println("Rating: <input type=\"radio\" name=\"user_star\" value=\"0\" />0");
-		}
-		if(rating.trim().equals("1")){
-			printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"1\" checked=\"checked\" />1");
-		} else {
-			printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"1\" />1");
-		}
-		if(rating.trim().equals("2")){
-			printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"2\" checked=\"checked\" />2");		
-		} else {
-			printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"2\" />2");		
-		}
-		if(rating.trim().equals("3")){
-			printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"3\" checked=\"checked\" />3");
-		} else {
-			printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"3\" />3");
-		}
-		if(rating.trim().equals("4")){
-			printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"4\" checked=\"checked\" />4");
-		} else {
-			printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"4\" />4");
-		}
-		if(rating.trim().equals("5")){
-			printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"5\" checked=\"checked\" />5 <br />");
-		} else {
-			printWriter.println("<input type=\"radio\" name=\"user_star\" value=\"5\" />5 <br />");
-		}
-		printWriter.println("<p><input type=\"submit\" name=\"button\" value=\"Submit\"></p>");
-		printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + hotelId + "\" />");
-		printWriter.println("</form>");
-	}
-	
-	/**
-	 * 
-	 * @param printWriter
-	 * @param hotelId
-	 * @param review_id
-	 * @param value
-	 */
-	private void displayLike(PrintWriter printWriter, String hotelId, String review_id, String value) {
-		printWriter.println("<form action=\"/reviews\" method=\"post\">");
-		printWriter.println("<p><input type=\"submit\" name=\"button\" value=\"" + value + "\"></p>");
-		printWriter.println("<input type=\"hidden\" name=\"hotelId\" value=\"" + hotelId + "\" />");
-		printWriter.println("<input type=\"hidden\" name=\"review_id\" value=\"" + review_id + "\" />");
-		printWriter.println("</form>");		
 	}
 	
 }

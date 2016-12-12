@@ -10,6 +10,19 @@ public class Reviewsinfodb {
 	private int countLike;
 	private int usersLike;
 
+	/**
+	 * 
+	 * @param username
+	 * @param rating
+	 * @param review_title
+	 * @param review_text
+	 * @param date
+	 * @param review_id
+	 * @param countLike
+	 * @param usersLike
+	 * 
+	 * 		To store Reviewsinfo context, this class is created
+	 */
 	public Reviewsinfodb(String username, String rating, String review_title, String review_text, 
 			String date, String review_id, int countLike, int usersLike) {
 		this.username = username;

@@ -24,22 +24,13 @@ public class MyReviewsServlet extends BaseServlet {
 	 *  if logged in, then list all reviews info that user submitted.
 	 */
 	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		/*
-		checkUserSession(req, resp);
-		prepareResponse("My Reviews", resp);
-		displayLogOut(resp);
-		dbhandler.listMyReviewsInfo(req, resp);
-		endingResponse(resp);
-		*/
-		
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {		
 		checkUserSession(req, resp);
 		prepareResponseHtml(resp);
 		VelocityContext context = getContext("My Reviews");
 		Template template = getTemplate(req, "MyReviewsInfo.html");
 		dbhandler.listMyReviewsInfoTemplateEngine(req, context);
-		mergeAndPrintResponse(resp, template, context);
-		
+		mergeAndPrintResponse(resp, template, context);		
 	}
 
 }

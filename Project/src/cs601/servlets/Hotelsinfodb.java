@@ -1,13 +1,20 @@
 package cs601.servlets;
 
-public class Hotelsinfodb{
-	
+public class Hotelsinfodb{	
 	private String hotel_id;
 	private String hotel_name;
 	private int total_count;
 	private double average_rating;
 	
-	
+	/**
+	 * 
+	 * @param hotel_id
+	 * @param hotel_name
+	 * @param total_count
+	 * @param average_rating
+	 * 
+	 * 		To store Hotelsinfo context, this class is created
+	 */
 	public Hotelsinfodb(String hotel_id, String hotel_name, int total_count, double average_rating){
 		this.hotel_id = hotel_id;
 		this.hotel_name = hotel_name;

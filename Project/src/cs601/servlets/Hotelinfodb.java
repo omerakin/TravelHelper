@@ -9,6 +9,18 @@ public class Hotelinfodb {
 	private String expedia;
 	private String hotel_id;	
 	
+	/**
+	 * 
+	 * @param hotel_name
+	 * @param hotel_street_address
+	 * @param hotel_city
+	 * @param hotel_state
+	 * @param averageRating
+	 * @param expedia
+	 * @param hotel_id
+	 * 
+	 * 		To store hotelinfo context, this class is created
+	 */
 	public Hotelinfodb(String hotel_name, String hotel_street_address, String hotel_city, String hotel_state,
 			double averageRating, String expedia, String hotel_id) {		
 		this.hotel_name = hotel_name;

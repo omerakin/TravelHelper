@@ -5,6 +5,14 @@ public class TouristAttractionInfodb {
 	private String address;
 	private double rating;
 	
+	/**
+	 * 
+	 * @param name
+	 * @param address
+	 * @param rating2
+	 * 
+	 * 		To store TouristAttractionInfo context, this class is created
+	 */
 	public TouristAttractionInfodb(String name, String address, double rating2) {
 		this.name = name;
 		this.address = address;

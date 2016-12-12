@@ -8,6 +8,17 @@ public class Myreviewsinfodb {
 	private String username;
 	private String hotel_id;
 
+	/**
+	 * 
+	 * @param hotelName
+	 * @param rating
+	 * @param review_title
+	 * @param review_text
+	 * @param username
+	 * @param hotel_id
+	 * 
+	 * 		To store Myreviewsinfo context, this class is created
+	 */
 	public Myreviewsinfodb(String hotelName, String rating, String review_title, 
 			String review_text, String username, String hotel_id) {
 		this.hotelName = hotelName;
