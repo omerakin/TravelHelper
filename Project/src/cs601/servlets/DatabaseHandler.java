@@ -148,6 +148,12 @@ public class DatabaseHandler {
 	/** Used to get hotel_name information for hotel_id. */
 	private static final String MYREVIEWS_HOTELS_SQL = "SELECT hotel_name FROM hotels WHERE hotel_id = ?";
 	
+	/** Used to calculate number of reviews for hotel_id. */
+	private static final String REVIEWS_COUNT_SQL = "SELECT COUNT(*) FROM reviews WHERE hotel_id = ?";
+	
+	/** Used to get information about user added review or not. */
+	private static final String USER_REVIEWS_COUNT_SQL = "SELECT COUNT(*) FROM reviews WHERE hotel_id = ? AND username = ?";
+	
 	/** Used to get saved hotel_name information for username. */
 	private static final String MYHOTELS_SAVED_HOTELS_SQL_v1 = "SELECT hotel_id FROM saved_hotels WHERE username = ?";
 	
@@ -1183,6 +1189,115 @@ public class DatabaseHandler {
 				reviews.addElement(reviewsinfodb);
 			}
 			context.put("reviews", reviews);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
+	}
+	
+	/**
+	 * 
+	 * @param req
+	 * 			- HttpServletRequest
+	 * @param context
+	 * 			- VelocityContext
+	 * @param clicked_button
+	 * 			- which button is clicked checks
+	 * 
+	 * 			Connect database and get all review information for specific hotel such as username, 
+	 * 		rating, review_title, review_text
+	 * 			Compare username with user's username, if they are equal, 
+	 * 		it allows user to edit his/her own review such as modify or delete 
+	 */
+	public void listReviewsInfoTemplateEnginePage(HttpServletRequest req, VelocityContext context, String clicked_button) {
+		Vector<Reviewsinfodb> reviews = new Vector<>();
+		HttpSession session = req.getSession();
+		String hotelId = req.getParameter("hotelId").trim();
+		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
+		String username = (String) session.getAttribute("user");
+		String sortBy = "";
+		String hasuserreview = "";
+		
+		//pagination variables
+		int page=1;
+		int recordsPerPage = 5;
+		int noOfRecords = 0;
+		int noOfPages = 0;
+		if(req.getParameter("page") != null){
+			page = Integer.parseInt(req.getParameter("page"));
+		}
+		if(req.getParameter("button") != null){
+			clicked_button = req.getParameter("button").trim();
+		}
+		String limitString = " limit " + (page-1)*recordsPerPage + "," + recordsPerPage;
+		if(clicked_button.equals("By date (most recent ones on top)")) {
+			sortBy = " ORDER BY date DESC";
+		} else if(clicked_button.equals("By rating (highly rated on top)")) {
+			sortBy = " ORDER BY rating DESC";
+		}		
+		try(Connection connection = db.getConnection(); PreparedStatement statementReview = connection.prepareStatement(REVIEWS_SQL_v1 + sortBy + limitString);){
+			statementReview.setString(1, hotelId);
+			ResultSet reviewResultSet = statementReview.executeQuery();
+			while(reviewResultSet.next()){
+				Reviewsinfodb reviewsinfodb = new Reviewsinfodb(reviewResultSet.getString("username"), 
+																reviewResultSet.getString("rating"), 
+																reviewResultSet.getString("review_title"), 
+																reviewResultSet.getString("review_text"), 
+																reviewResultSet.getString("date"),
+																reviewResultSet.getString("review_id"),
+																0,
+																0);
+				//get the count of like for this review
+				try(PreparedStatement statementCountLike = connection.prepareStatement(COUNT_LIKING_REVIEWS_SQL);){
+					statementCountLike.setString(1, hotelId);
+					statementCountLike.setString(2, reviewResultSet.getString("review_id"));
+					ResultSet countLikeResultSet = statementCountLike.executeQuery();
+					if (countLikeResultSet.next()){
+						reviewsinfodb.setCountLike(countLikeResultSet.getInt(1));
+					}
+				}
+				if((username != null) && (!username.equals(reviewResultSet.getString("username")))){
+					try(PreparedStatement statementUsersLike = connection.prepareStatement(COUNT_USER_LIKED_SQL);){
+						statementUsersLike.setString(1, hotelId);
+						statementUsersLike.setString(2, reviewResultSet.getString("review_id"));
+						statementUsersLike.setString(3, username);
+						ResultSet usersLikeResultSet = statementUsersLike.executeQuery();
+						if(usersLikeResultSet.next()){
+							reviewsinfodb.setUsersLike(usersLikeResultSet.getInt(1));
+						}					
+					}
+				}
+				reviews.addElement(reviewsinfodb);
+			}
+			//get number of records to set the page number
+			try(PreparedStatement numberOfRecords = connection.prepareStatement(REVIEWS_COUNT_SQL);){
+				numberOfRecords.setString(1, hotelId);
+				ResultSet numberOfRecordsSet = numberOfRecords.executeQuery();
+				if (numberOfRecordsSet.next()){
+					noOfRecords = numberOfRecordsSet.getInt(1);
+					noOfPages = (int) Math.ceil(noOfRecords * 1.0 / recordsPerPage);
+					if (noOfPages==0) { noOfPages=1; }
+				}
+			}			
+			//check user already added review or not
+			try(PreparedStatement existUserReview = connection.prepareStatement(USER_REVIEWS_COUNT_SQL);){
+				existUserReview.setString(1, hotelId);
+				existUserReview.setString(2, username);
+				ResultSet numberOfSet = existUserReview.executeQuery();
+				if (numberOfSet.next()){
+					if(numberOfSet.getInt(1) == 0) {
+						hasuserreview = "no";						
+					} else {
+						hasuserreview = "yes";
+					}
+				}
+			}
+			context.put("reviews", reviews);
+			context.put("hotelId", hotelId);
+			context.put("username", username);
+			context.put("clicked_button", clicked_button);				
+			context.put("noOfPages", noOfPages);
+			context.put("currentPage", page);
+			context.put("hasuserreview", hasuserreview);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

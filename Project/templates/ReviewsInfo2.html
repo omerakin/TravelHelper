@@ -57,6 +57,7 @@
   	<input type="hidden" name="hotelId" value="$hotelId" />
   	</form>
   	<hr style="width: 100%; color: black; height: 1px; background-color:black;">
+  	#set( $count = 0)
     #foreach( $reviewsinfodb in $reviews)
     	<p> Review by $reviewsinfodb.Username:</p>
     	<p> Rating : $reviewsinfodb.Rating</p>
@@ -71,6 +72,7 @@
     		<input class="btn btn-danger" type="submit" name="button" value="Delete"></p>
     		<input type="hidden" name="hotelId" value="$hotelId"/>
     		</form>
+    		#set( $count = $count + 1)
     	#else
     		#if ($reviewsinfodb.UsersLike == 0)
     			<form action="/reviews" method="post">
@@ -88,7 +90,7 @@
     	#end    	
  		<hr>        
 	#end
-	#if ($hasuserreview == "no")
+	#if ($count == 0)
 		#if ($clicked_button != "Modify")
 			<form action="/reviews" method="post">
 			<p> Review title:  <input type="text" name="user_review_title" size="86">  </p>
@@ -143,17 +145,7 @@
 		<p><input type="submit" name="button" value="Submit"></p>
 		<input type="hidden" name="hotelId" value="$modify_hotelId" />
 		</form>		
-	#end
-	#set($start = 1)
-	#set($range = [$start..$noOfPages])
-	<div class="container-fluid text-center">
-	<font size="6"><</font>
-	#foreach ($i in $range)
-		&nbsp; &nbsp; &nbsp;
-		<a href="/reviews?hotelId=$hotelId&button=$clicked_button&page=$i" style="font-size: 30px;">$i</a>
-		&nbsp; &nbsp; &nbsp;
 	#end	
-	<font size="6">></font>
   </div>
 </div><br>
 

@@ -34,11 +34,20 @@ public class ReviewsServlet extends BaseServlet{
 		endingResponse(resp);	
 		*/
 		
+		/*
 		checkUserSession(req, resp);
 		prepareResponseHtml(resp);
 		VelocityContext context = getContext("Reviews");
 		Template template = getTemplate(req, "ReviewsInfo.html");
 		dbhandler.listReviewsInfoTemplateEngine(req, context, "Get");
+		mergeAndPrintResponse(resp, template, context);
+		*/
+		
+		checkUserSession(req, resp);
+		prepareResponseHtml(resp);
+		VelocityContext context = getContext("Reviews");
+		Template template = getTemplate(req, "ReviewsInfo.html");		
+		dbhandler.listReviewsInfoTemplateEnginePage(req, context, "GET");		
 		mergeAndPrintResponse(resp, template, context);
 	}
 
@@ -88,24 +97,24 @@ public class ReviewsServlet extends BaseServlet{
 		String clicked_button = req.getParameter("button").trim();
 		if (clicked_button.equals("Submit")) {			
 			dbhandler.insertReview(req);
-			dbhandler.listReviewsInfoTemplateEngine(req, context, clicked_button);
+			dbhandler.listReviewsInfoTemplateEnginePage(req, context, clicked_button);
 		} else if (clicked_button.equals("Delete")) {			
 			dbhandler.deleteReview(req);
-			dbhandler.listReviewsInfoTemplateEngine(req, context, clicked_button);
+			dbhandler.listReviewsInfoTemplateEnginePage(req, context, clicked_button);
 		} else if (clicked_button.equals("Modify")) {			
 			dbhandler.modifyReview(req, context);			
 		} else if (clicked_button.equals("By date (most oldest ones on top)")) {
-			dbhandler.listReviewsInfoTemplateEngine(req, context, clicked_button);
+			dbhandler.listReviewsInfoTemplateEnginePage(req, context, clicked_button);
 		} else if (clicked_button.equals("By date (most recent ones on top)")) {
-			dbhandler.listReviewsInfoTemplateEngine(req, context, clicked_button);
+			dbhandler.listReviewsInfoTemplateEnginePage(req, context, clicked_button);
 		} else if (clicked_button.equals("By rating (highly rated on top)")) {
-			dbhandler.listReviewsInfoTemplateEngine(req, context, clicked_button);
+			dbhandler.listReviewsInfoTemplateEnginePage(req, context, clicked_button);
 		} else if (clicked_button.equals("Like")) {
 			dbhandler.insertLikeReview(req);
-			dbhandler.listReviewsInfoTemplateEngine(req, context, clicked_button);
+			dbhandler.listReviewsInfoTemplateEnginePage(req, context, clicked_button);
 		} else if (clicked_button.equals("Unlike")) {
 			dbhandler.deleteLikeReview(req);
-			dbhandler.listReviewsInfoTemplateEngine(req, context, clicked_button);
+			dbhandler.listReviewsInfoTemplateEnginePage(req, context, clicked_button);
 		}
 		mergeAndPrintResponse(resp, template, context);
 	}
