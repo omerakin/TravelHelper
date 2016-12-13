@@ -47,15 +47,17 @@
 </nav>
 <div class="jumbotron">
   <div class="container-fluid" style="margin-top: -30px;">
-  	<form action="/reviews" method="post">
-  	<p> <b>Sort By:</b> &nbsp; &nbsp;
-  	<input class="btn btn-success btn-lg" type="submit" name="button" value="By date (most oldest ones on top)">
-  	&nbsp; &nbsp; &nbsp;
-  	<input class="btn btn-success btn-lg" type="submit" name="button" value="By date (most recent ones on top)">
-  	&nbsp; &nbsp; &nbsp;
-  	<input class="btn btn-success btn-lg" type="submit" name="button" value="By rating (highly rated on top)"></p>
-  	<input type="hidden" name="hotelId" value="$hotelId" />
-  	</form>
+  	#if ($clicked_button != "Modify")
+	  	<form action="/reviews" method="post">
+	  	<p> <b>Sort By:</b> &nbsp; &nbsp;
+	  	<input class="btn btn-success btn-lg" type="submit" name="button" value="By date (most oldest ones on top)">
+	  	&nbsp; &nbsp; &nbsp;
+	  	<input class="btn btn-success btn-lg" type="submit" name="button" value="By date (most recent ones on top)">
+	  	&nbsp; &nbsp; &nbsp;
+	  	<input class="btn btn-success btn-lg" type="submit" name="button" value="By rating (highly rated on top)"></p>
+	  	<input type="hidden" name="hotelId" value="$hotelId" />
+	  	</form>
+	#end
   	<hr style="width: 100%; color: black; height: 1px; background-color:black;">
     #foreach( $reviewsinfodb in $reviews)
     	<p> Review by $reviewsinfodb.Username:</p>

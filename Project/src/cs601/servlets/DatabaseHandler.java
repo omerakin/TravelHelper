@@ -1101,9 +1101,12 @@ public class DatabaseHandler {
 		String review_title = null;
 		String review_text = null;
 		String rating = null;
+		int page=1;
+		int noOfPages = 1;
 		String hotelId = req.getParameter("hotelId").trim();
 		String username = (String) session.getAttribute("user");
-		hotelId = StringEscapeUtils.escapeHtml4(hotelId);
+		hotelId = StringEscapeUtils.escapeHtml4(hotelId);		
+		String clicked_button = "Modify";
 		
 		//select the review
 		try(Connection connection = db.getConnection(); PreparedStatement selectReview = connection.prepareStatement(REVIEWS_SQL_v2);){
@@ -1122,8 +1125,13 @@ public class DatabaseHandler {
 				deleteReview.executeUpdate();
 			}
 			//list Reviews without users review
-			listReviewsInfoTemplateEngine(req, context, "Modify");
-			//prepare the new review
+			//listReviewsInfoTemplateEnginePage(req, context, "Modify");
+			//prepare the new review			
+			context.put("hotelId", hotelId);
+			context.put("username", username);
+			context.put("clicked_button", clicked_button);				
+			context.put("noOfPages", noOfPages);
+			context.put("currentPage", page);
 			context.put("modify_review_title", review_title);
 			context.put("modify_review_text", review_text);
 			context.put("modify_rating", rating.trim());

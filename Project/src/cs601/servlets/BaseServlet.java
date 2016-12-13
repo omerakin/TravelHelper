@@ -213,9 +213,14 @@ public class BaseServlet extends HttpServlet {
 	 * 			- HttpServletResponse
 	 * @throws IOException
 	 * 
+	 * 			Clear cache in case of browser back button pressed.
 	 * 			Checks user is already logged or not. Then redirects
 	 */
 	protected void checkUserSession(HttpServletRequest req, HttpServletResponse resp) throws IOException {		
+		resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+		resp.setHeader("Pragma", "no-cache"); // HTTP 1.0.
+		resp.setDateHeader("Expires", 0);
+		
 		HttpSession session = req.getSession();
 		String username = (String) session.getAttribute("user");
 		if(username == null || username.isEmpty()){

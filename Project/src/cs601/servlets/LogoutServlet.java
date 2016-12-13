@@ -18,24 +18,9 @@ public class LogoutServlet extends BaseServlet {
 	 */
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		cleanCahche(resp);
 		checkUserSession(req, resp);
 		req.getSession().removeAttribute("user");
 		req.getSession().invalidate();
 		resp.sendRedirect(resp.encodeRedirectURL("/login"));
 	}
-
-	/**
-	 * 
-	 * @param resp
-	 * 			- HttpServletResponse
-	 * 
-	 * 			Clear cache in case of browser back button pressed.
-	 */
-	private void cleanCahche(HttpServletResponse resp) {
-		resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
-		resp.setHeader("Pragma", "no-cache"); // HTTP 1.0.
-		resp.setDateHeader("Expires", 0);		
-	}	
-
 }
